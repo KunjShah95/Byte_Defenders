@@ -34,12 +34,10 @@ export class ErrorBoundary extends Component<Props, State> {
 
         this.setState({ errorInfo });
 
-        // Report to error tracking service
         if (this.props.onError) {
             this.props.onError(error, errorInfo);
         }
 
-        // Report to analytics
         if (typeof window !== 'undefined' && (window as any).gtag) {
             (window as any).gtag('event', 'exception', {
                 description: error.message,

@@ -15,17 +15,12 @@ export default function DashboardPage() {
   useEffect(() => {
     if (sessionId) {
       loadSession(sessionId).then(() => {
-        // We can't rely on currentSession here as it's from the closure
-        // But we can rely on the fact that if we just loaded it and it's pending, we might want to run it.
-        // NOTE: This might cause double-runs if not careful, but usually acceptable.
       });
     }
   }, [sessionId]);
 
-  // Trigger execution if loaded session is pending and not already running
   useEffect(() => {
     if (currentSession && currentSession.status === 'pending' && !isLoading && !error) {
-      // Only run if we are not already loading and no error
       runSession(currentSession.id);
     }
   }, [currentSession?.id, currentSession?.status]);
@@ -60,8 +55,6 @@ export default function DashboardPage() {
   }
 
   const isComplete = currentSession.status === 'completed';
-  // Consider running if status is running OR if we are currently loading (waiting for runSession)
-  // and the status is pending/active.
   const isRunning = currentSession.status === 'running' || (isLoading && currentSession.status === 'pending');
 
   return (

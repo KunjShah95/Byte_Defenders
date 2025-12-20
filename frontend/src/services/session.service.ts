@@ -22,7 +22,6 @@ export const sessionService = {
     const response = await apiClient.get(`/sessions/${id}`);
     if (!response.data) return null;
 
-    // Reconstruct input from backend data
     const input: SessionInput = {
       prompt: response.data.description || '',
       useCase: response.data.metadata?.useCase || 'startup',
@@ -34,7 +33,6 @@ export const sessionService = {
 
   async getAllSessions(): Promise<Session[]> {
     const response = await apiClient.get('/sessions');
-    // We might need to map these similarly, but for now assuming list structure
     return (response.data as any[]).map(s => {
       const input: SessionInput = {
         prompt: s.description || '',
@@ -46,56 +44,72 @@ export const sessionService = {
   },
 
   async runSession(id: string, input: SessionInput): Promise<Session> {
-    const endpoint = input.explainabilityMode ? 'full' : 'quick';
-    const response = await apiClient.post(`/sessions/${id}/workflow/${endpoint}`, {
-      topic: input.prompt
-    });
+    try {
+      const endpoint = input.explainabilityMode ? 'full' : 'quick';
+      const response = await apiClient.post(`/sessions/${id}/workflow/${endpoint}`, {
+        topic: input.prompt
+      });
 
-    const session = await this.getSession(id);
-    if (!session) throw new Error('Session not found after execution');
+      const session = await this.getSession(id);
+      if (!session) throw new Error('Session not found after execution');
 
-    // Map result to session
-    if (response.data) {
-      session.status = 'completed';
-      session.result = this.mapBackendResult(response.data);
+      if (response.data) {
+        session.status = 'completed';
+        session.result = this.mapBackendResult(response.data);
+      } else {
+        session.status = 'running';
+      }
+
+      return session;
+    } catch (error: any) {
+      console.error('Error running session:', error);
+      if (error.response) {
+        throw new Error(`Workflow execution failed: ${error.response.data?.error || error.response.statusText}`);
+      } else if (error.request) {
+        throw new Error('Network error: Could not reach the backend server. Please ensure the backend is running on port 3000.');
+      } else {
+        throw new Error(`Failed to run session: ${error.message}`);
+      }
     }
-
-    return session;
   },
 
   mapBackendSession(backendData: any, input: SessionInput): Session {
+    let status: 'pending' | 'running' | 'completed' | 'failed' = 'pending';
+    if (backendData.status === 'active') {
+      status = 'pending';
+    } else if (backendData.status === 'completed') {
+      status = 'completed';
+    } else if (backendData.status === 'failed') {
+      status = 'failed';
+    } else if (backendData.status === 'running') {
+      status = 'running';
+    }
+
     return {
-      id: backendData.id,
+      id: backendData.id || backendData.sessionId,
       input: input,
-      status: backendData.status === 'active' ? 'pending' : backendData.status || 'pending',
-      agents: [], // To be populated from result or history
-      createdAt: backendData.createdAt,
-      updatedAt: backendData.updatedAt
+      status: status,
+      agents: [],
+      createdAt: backendData.createdAt ? (typeof backendData.createdAt === 'string' ? backendData.createdAt : backendData.createdAt.toISOString()) : new Date().toISOString(),
+      updatedAt: backendData.updatedAt ? (typeof backendData.updatedAt === 'string' ? backendData.updatedAt : backendData.updatedAt.toISOString()) : new Date().toISOString()
     };
   },
 
   mapBackendResult(data: any): any {
-    // Map backend WorkflowResult to SessionResult
-    // data.executionHistory contains all steps including agent outputs
-    // data.refinedIdea contains the final output object
-    // data.initialIdea contains the initial output object
-
-    // Determine the primary text output to show as overview
     const overview = data.refinedIdea?.output?.text ||
       data.initialIdea?.output?.text ||
       (typeof data.finalOutput === 'string' ? data.finalOutput : JSON.stringify(data.finalOutput)) ||
       '';
 
-    // Extract key recommendations/points if available or use raw text
     const recommendation = data.presentation?.output?.text || '';
 
     return {
-      title: 'Generated Idea', // Could be dynamic
+      title: 'Generated Idea',
       overview: overview,
-      keyPoints: [], // Logic to extract key points could be added here
+      keyPoints: [],
       recommendation: recommendation,
       agentOutputs: data.executionHistory || [],
-      avgScore: 8.5, // Dummy or calculate from agent scores if available
+      avgScore: 8.5,
       iterations: data.executionHistory?.length || 1
     };
   },

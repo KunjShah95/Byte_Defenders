@@ -41,11 +41,9 @@ export function CommandPalette({ onSignOut }: CommandPaletteProps) {
     const [selectedIndex, setSelectedIndex] = useState(0);
     const navigate = useNavigate();
 
-    // Open with Ctrl/Cmd + K
     useKeyboardShortcut('k', () => setIsOpen(true), { ctrl: true });
     useKeyboardShortcut('k', () => setIsOpen(true), { meta: true });
 
-    // Close with Escape
     useKeyboardShortcut('Escape', () => {
         if (isOpen) {
             setIsOpen(false);
@@ -54,7 +52,6 @@ export function CommandPalette({ onSignOut }: CommandPaletteProps) {
     });
 
     const commands: CommandItem[] = useMemo(() => [
-        // Navigation
         {
             id: 'home',
             title: 'Go to Home',
@@ -104,7 +101,6 @@ export function CommandPalette({ onSignOut }: CommandPaletteProps) {
             keywords: ['help', 'guide', 'api'],
             category: 'navigation',
         },
-        // Settings
         {
             id: 'settings',
             title: 'Settings',
@@ -121,7 +117,6 @@ export function CommandPalette({ onSignOut }: CommandPaletteProps) {
             keywords: ['support', 'contact'],
             category: 'settings',
         },
-        // Actions
         {
             id: 'signout',
             title: 'Sign Out',
@@ -144,12 +139,10 @@ export function CommandPalette({ onSignOut }: CommandPaletteProps) {
         });
     }, [commands, search]);
 
-    // Reset selection when search changes
     useEffect(() => {
         setSelectedIndex(0);
     }, [search]);
 
-    // Handle keyboard navigation
     const handleKeyDown = (e: React.KeyboardEvent) => {
         switch (e.key) {
             case 'ArrowDown':

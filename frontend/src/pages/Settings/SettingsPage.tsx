@@ -77,14 +77,12 @@ export default function SettingsPage() {
 
     const handleSave = async () => {
         setIsSaving(true);
-        // Simulate API call
         await new Promise(resolve => setTimeout(resolve, 1000));
         toast.success('Settings saved successfully');
         setIsSaving(false);
     };
 
     const handleExportData = () => {
-        // Create a JSON blob with user data
         const data = {
             settings,
             exportDate: new Date().toISOString(),

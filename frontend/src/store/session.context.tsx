@@ -71,16 +71,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setError(null);
     setIsLoading(true);
     try {
-      // 1. Ensure we have the latest session data (specifically input)
       const session = await sessionService.getSession(id);
       if (!session) throw new Error('Session not found');
 
       setCurrentSession(session);
 
-      // 2. Run the workflow on the backend
       const updatedSession = await sessionService.runSession(id, session.input);
 
-      // 3. Update state with result
       setCurrentSession(updatedSession);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to run session');

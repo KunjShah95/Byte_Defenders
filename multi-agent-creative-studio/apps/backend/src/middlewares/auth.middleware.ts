@@ -3,6 +3,18 @@ import { authService } from '../services/auth.service';
 
 export async function authMiddleware(req: Request, res: Response, next: NextFunction) {
     try {
+        // Skip auth if Firebase is not configured (development mode)
+        if (!authService || !process.env.FIREBASE_PROJECT_ID) {
+            console.warn('Firebase not configured, skipping authentication');
+            (req as any).user = {
+                uid: 'dev-user',
+                email: 'dev@localhost',
+                emailVerified: true,
+            };
+            next();
+            return;
+        }
+
         const authHeader = req.headers.authorization;
 
         if (!authHeader || !authHeader.startsWith('Bearer ')) {

@@ -64,7 +64,6 @@ const client = new OrchestraStudioClient({
   apiKey: process.env.ORCHESTRA_STUDIO_API_KEY
 });
 
-// Create a session and run full workflow
 const session = await client.sessions.create({
   title: 'Product Innovation',
   description: 'Brainstorming new features'

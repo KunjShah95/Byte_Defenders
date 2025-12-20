@@ -30,12 +30,10 @@ class AnalyticsService {
         this.config = { ...this.config, ...config };
         this.initialized = true;
 
-        // Load Google Analytics if configured
         if (this.config.googleAnalyticsId) {
             this.loadGoogleAnalytics(this.config.googleAnalyticsId);
         }
 
-        // Process queued events
         this.queue.forEach(({ event, properties }) => {
             this.track(event, properties);
         });
@@ -46,13 +44,9 @@ class AnalyticsService {
         }
     }
 
-    /**
-     * Track a custom event
-     */
     track(event: string, properties: EventProperties = {}) {
         if (!this.config.enabled) return;
 
-        // Queue events if not initialized
         if (!this.initialized) {
             this.queue.push({ event, properties });
             return;
@@ -69,15 +63,11 @@ class AnalyticsService {
             console.log('[Analytics] Track:', event, enrichedProperties);
         }
 
-        // Send to Google Analytics
         if (typeof window !== 'undefined' && (window as any).gtag) {
             (window as any).gtag('event', event, enrichedProperties);
         }
     }
 
-    /**
-     * Track page view
-     */
     pageView(path: string, title?: string) {
         this.track('page_view', {
             page_path: path,
@@ -85,23 +75,14 @@ class AnalyticsService {
         });
     }
 
-    /**
-     * Track user sign up
-     */
     signUp(method: string) {
         this.track('sign_up', { method });
     }
 
-    /**
-     * Track user sign in
-     */
     signIn(method: string) {
         this.track('login', { method });
     }
 
-    /**
-     * Track session creation
-     */
     sessionCreated(sessionId: string, useCase?: string) {
         this.track('session_created', {
             session_id: sessionId,
@@ -109,9 +90,6 @@ class AnalyticsService {
         });
     }
 
-    /**
-     * Track workflow completion
-     */
     workflowCompleted(sessionId: string, duration: number, score?: number) {
         this.track('workflow_completed', {
             session_id: sessionId,
@@ -120,9 +98,6 @@ class AnalyticsService {
         });
     }
 
-    /**
-     * Track subscription
-     */
     subscribe(plan: string, billingCycle: 'monthly' | 'yearly', amount: number) {
         this.track('purchase', {
             plan,
@@ -132,9 +107,6 @@ class AnalyticsService {
         });
     }
 
-    /**
-     * Track errors
-     */
     error(message: string, fatal: boolean = false) {
         this.track('exception', {
             description: message,
@@ -142,9 +114,6 @@ class AnalyticsService {
         });
     }
 
-    /**
-     * Identify user (after login)
-     */
     identify(userId: string, traits: EventProperties = {}) {
         if (this.config.debug) {
             console.log('[Analytics] Identify:', userId, traits);
@@ -155,9 +124,6 @@ class AnalyticsService {
         }
     }
 
-    /**
-     * Clear user identity (after logout)
-     */
     reset() {
         if (this.config.debug) {
             console.log('[Analytics] Reset');
@@ -179,12 +145,11 @@ class AnalyticsService {
         (window as any).gtag = gtag;
         gtag('js', new Date());
         gtag('config', measurementId, {
-            send_page_view: false, // We'll handle pageviews manually
+            send_page_view: false,
         });
     }
 }
 
-// Singleton instance
 export const analytics = new AnalyticsService();
 
 export default analytics;

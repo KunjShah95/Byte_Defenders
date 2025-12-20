@@ -13,6 +13,7 @@ import { AuthService } from './services/auth.service';
 import { authMiddleware } from './middlewares/auth.middleware';
 import { createSession } from './api/createSession';
 import { getSession } from './api/getSession';
+import { getAllSessions } from './api/getAllSessions';
 import { getResult } from './api/getResult';
 import { getExplainability } from './api/getExplainability';
 import { runWorkflow } from './api/workflows';
@@ -72,6 +73,7 @@ app.get('/health', (req: Request, res: Response) => {
 
 // Session Management
 app.post('/api/v1/sessions', authMiddleware, createSession);
+app.get('/api/v1/sessions', authMiddleware, getAllSessions);
 app.get('/api/v1/sessions/:sessionId', authMiddleware, getSession);
 
 // Workflow Execution

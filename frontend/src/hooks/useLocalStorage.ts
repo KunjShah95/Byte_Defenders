@@ -11,7 +11,6 @@ export function useLocalStorage<T>(
     key: string,
     initialValue: T
 ): [T, (value: T | ((prev: T) => T)) => void] {
-    // Get initial value from localStorage or use provided initial value
     const [storedValue, setStoredValue] = useState<T>(() => {
         if (typeof window === 'undefined') {
             return initialValue;
@@ -26,7 +25,6 @@ export function useLocalStorage<T>(
         }
     });
 
-    // Update localStorage when state changes
     useEffect(() => {
         if (typeof window !== 'undefined') {
             try {
@@ -37,7 +35,6 @@ export function useLocalStorage<T>(
         }
     }, [key, storedValue]);
 
-    // Listen for changes from other tabs
     useEffect(() => {
         const handleStorageChange = (event: StorageEvent) => {
             if (event.key === key && event.newValue) {

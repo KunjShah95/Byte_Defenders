@@ -158,10 +158,9 @@ export default function PricingPage() {
                 return;
             }
 
-            // Calculate price (yearly gets 2 months free)
             const finalPrice = billingCycle === 'yearly'
-                ? tier.price * 10 * 100 // 10 months for yearly (2 months free), in paise
-                : tier.price * 100; // in paise
+                ? tier.price * 10 * 100
+                : tier.price * 100;
 
             const options = {
                 key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_demo',
@@ -173,7 +172,6 @@ export default function PricingPage() {
                 handler: function (response: any) {
                     toast.success('Payment successful! Welcome to ' + tier.name);
                     console.log('Payment ID:', response.razorpay_payment_id);
-                    // Here you would call your backend to verify and activate the subscription
                     navigate('/create');
                 },
                 prefill: {

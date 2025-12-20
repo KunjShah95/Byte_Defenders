@@ -22,10 +22,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const root = window.document.documentElement;
 
-        // Remove existing theme classes
         root.classList.remove('light', 'dark');
 
-        // Determine the actual theme to apply
         let actualTheme: 'light' | 'dark';
 
         if (theme === 'system') {
@@ -37,12 +35,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             actualTheme = theme;
         }
 
-        // Apply the theme
         root.classList.add(actualTheme);
         root.style.colorScheme = actualTheme;
         setResolvedTheme(actualTheme);
 
-        // Update meta theme-color for mobile browsers
         const metaThemeColor = document.querySelector('meta[name="theme-color"]');
         if (metaThemeColor) {
             metaThemeColor.setAttribute(
@@ -52,7 +48,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         }
     }, [theme]);
 
-    // Listen for system theme changes
     useEffect(() => {
         if (theme !== 'system') return;
 
