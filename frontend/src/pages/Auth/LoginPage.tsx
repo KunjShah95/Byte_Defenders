@@ -10,7 +10,7 @@ export default function LoginPage() {
 
     React.useEffect(() => {
         if (user) {
-            navigate('/');
+            navigate('/home');
         }
     }, [user, navigate]);
 

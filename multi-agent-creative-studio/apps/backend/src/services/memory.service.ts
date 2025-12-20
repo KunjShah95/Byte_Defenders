@@ -15,7 +15,7 @@ export interface MemoryStore {
   updatedAt: Date;
 }
 
-// Persistence interface
+// Persistence interface (can be implemented by Redis/Postgres adapters in the future)
 export interface IPersistenceAdapter {
   initializeSession(sessionId: string): Promise<void>;
   store(sessionId: string, key: string, value: any): Promise<void>;
@@ -99,8 +99,11 @@ export class MemoryService {
   private logger = Logger.getLogger('MemoryService');
 
   private constructor() {
+    // By default, use in-memory adapter. This can be swapped for Redis/Postgres adapters later.
+    // Choose persistence mode from config (memory | redis | postgres)
     const mode = (config && (config as any).persistence?.mode) || 'memory';
     if (mode === 'redis') {
+      // If Redis adapter is available, use it
       this.storage = new RedisAdapter((config as any).persistence?.redisHost || 'localhost', (config as any).persistence?.redisPort || 6379);
     } else if (mode === 'postgres') {
       this.storage = new PostgresAdapter((config as any).persistence);
@@ -150,4 +153,3 @@ export class MemoryService {
     return await this.storage.getExecutionHistory(sessionId);
   }
 }
-

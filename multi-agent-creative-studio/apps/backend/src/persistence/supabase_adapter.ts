@@ -1,13 +1,12 @@
 import { IPersistenceAdapter } from '../services/memory.service';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { config } from '../config';
 
 export class SupabaseAdapter implements IPersistenceAdapter {
   private client: SupabaseClient | null = null;
 
   constructor() {
-    const url = config.persistence.supabaseUrl;
-    const anonKey = config.persistence.supabaseKey;
+    const url = process.env.SUPABASE_URL;
+    const anonKey = process.env.SUPABASE_ANON_KEY || '';
     if (url && anonKey) {
       this.client = createClient(url, anonKey);
     }

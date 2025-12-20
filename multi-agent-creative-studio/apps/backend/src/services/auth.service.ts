@@ -5,35 +5,26 @@ export class AuthService {
     private static instance: AuthService;
 
     private constructor() {
-        // Try to load from service account file first
-        const serviceAccountPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
-
-        if (serviceAccountPath) {
+        // Initialize Firebase Admin using environment variables
+        if (config.firebase.projectId && config.firebase.clientEmail && config.firebase.privateKey) {
             try {
                 if (!admin.apps.length) {
-                    const serviceAccount = require(serviceAccountPath);
                     admin.initializeApp({
-                        credential: admin.credential.cert(serviceAccount),
+                        credential: admin.credential.cert({
+                            projectId: config.firebase.projectId,
+                            clientEmail: config.firebase.clientEmail,
+                            privateKey: config.firebase.privateKey,
+                        }),
                     });
                 }
-                console.log('Firebase Admin initialized successfully from service account file');
+                console.log('Firebase Admin initialized successfully from environment variables');
             } catch (error) {
-                console.error('Error loading Firebase service account file:', error);
+                console.error('Error initializing Firebase Admin:', error);
                 console.warn('Firebase Admin initialization failed');
             }
-        } else if (config.firebase.projectId && config.firebase.clientEmail && config.firebase.privateKey) {
-            if (!admin.apps.length) {
-                admin.initializeApp({
-                    credential: admin.credential.cert({
-                        projectId: config.firebase.projectId,
-                        clientEmail: config.firebase.clientEmail,
-                        privateKey: config.firebase.privateKey,
-                    }),
-                });
-            }
-            console.log('Firebase Admin initialized successfully from environment variables');
         } else {
-            console.warn('Firebase Admin credentials missing, auth middleware will be disabled or fail');
+            console.warn('Firebase Admin credentials missing in environment variables. Auth middleware will be disabled.');
+            console.warn('Required: FIREBASE_PROJECT_ID, FIREBASE_CLIENT_EMAIL, FIREBASE_PRIVATE_KEY');
         }
     }
 
