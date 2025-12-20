@@ -341,7 +341,7 @@ export default function LandingPage() {
         <div className="container relative z-10 px-4 mx-auto">
           <div className="mb-24 flex flex-col md:flex-row items-end justify-between gap-12">
             <div className="max-w-xl">
-              <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-6">01 // THE PIPELINE</div>
+              <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-6">THE PIPELINE</div>
               <h2 className="text-5xl md:text-7xl font-bold text-white tracking-tight leading-[1.1]">
                 Deep Reasoning <br />By Design.
               </h2>
@@ -374,7 +374,7 @@ export default function LandingPage() {
       <section className="py-24 lg:py-32 bg-secondary/10">
         <div className="container px-4 mx-auto">
           <div className="mb-20 text-center max-w-3xl mx-auto">
-            <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-4">// APPLICABILITY</div>
+            <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-4">APPLICABILITY</div>
             <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
               Built for Every Creative Challenge
             </h2>
@@ -412,7 +412,7 @@ export default function LandingPage() {
         <div className="container px-4 mx-auto relative z-10">
           <div className="grid lg:grid-cols-2 gap-24 items-center">
             <div className="space-y-10">
-              <div className="text-primary font-mono text-xs uppercase tracking-[0.3em]">02 // TRANSPARENCY</div>
+              <div className="text-primary font-mono text-xs uppercase tracking-[0.3em]">TRANSPARENCY</div>
               <h2 className="text-5xl md:text-7xl font-bold text-white tracking-tighter leading-[1.1]">
                 No Black Boxes, <br />Only <span className="text-gradient">Logic</span>.
               </h2>
@@ -484,7 +484,7 @@ export default function LandingPage() {
       <section className="py-24 lg:py-32 bg-background relative">
         <div className="container px-4 mx-auto">
           <div className="mb-20 text-center">
-            <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-4">// ENDORSEMENTS</div>
+            <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-4">ENDORSEMENTS</div>
             <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">Trusted by Innovators</h2>
             <p className="text-lg text-muted-foreground font-light max-w-2xl mx-auto">See how The Orchestra Studio is redefining the standard for AI-assisted creation.</p>
           </div>
@@ -519,7 +519,7 @@ export default function LandingPage() {
       <section className="py-24 lg:py-32 bg-secondary/5">
         <div className="container px-4 mx-auto">
           <div className="mb-20 text-center">
-            <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-4">// INVESTMENT</div>
+            <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-4">INVESTMENT</div>
             <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">Professional Plans</h2>
             <p className="text-lg text-muted-foreground font-light">Simple, scalable pricing for individuals and teams.</p>
           </div>
@@ -571,7 +571,7 @@ export default function LandingPage() {
         <div className="container px-4 mx-auto">
           <div className="max-w-3xl mx-auto">
             <div className="mb-16 text-center">
-              <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-4">// PERSISTENCE</div>
+              <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-4">PERSISTENCE</div>
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Common Inquiries</h2>
             </div>
 
