@@ -48,7 +48,6 @@ export default function ProfilePage() {
         });
     };
 
-    // Calculate stats
     const totalSessions = sessions.length;
     const completedSessions = sessions.filter(s => s.status === 'completed').length;
 

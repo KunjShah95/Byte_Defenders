@@ -8,10 +8,6 @@ interface NetworkState {
     saveData?: boolean;
 }
 
-/**
- * Custom hook for monitoring network status and connection quality.
- * Essential for offline-first applications and adaptive loading.
- */
 export function useNetworkStatus(): NetworkState {
     const [state, setState] = useState<NetworkState>({
         online: typeof navigator !== 'undefined' ? navigator.onLine : true,
@@ -30,14 +26,11 @@ export function useNetworkStatus(): NetworkState {
             });
         };
 
-        // Initial update
         updateNetworkInfo();
 
-        // Listen for online/offline events
         window.addEventListener('online', updateNetworkInfo);
         window.addEventListener('offline', updateNetworkInfo);
 
-        // Listen for connection changes
         const connection = (navigator as any).connection;
         if (connection) {
             connection.addEventListener('change', updateNetworkInfo);

@@ -21,7 +21,6 @@ export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const { user, loading, signOut } = useAuth();
 
-  // Don't render header on auth pages
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
   const navItems = [

@@ -186,7 +186,6 @@ const FAQ_ITEMS = [
   },
 ];
 
-// Animated counter component
 function AnimatedCounter({ value, suffix = '' }: { value: string; suffix?: string }) {
   const [displayValue, setDisplayValue] = useState('0');
 
@@ -215,7 +214,6 @@ function AnimatedCounter({ value, suffix = '' }: { value: string; suffix?: strin
   return <span>{displayValue}{suffix}</span>;
 }
 
-// FAQ Accordion Item
 function FAQItem({ question, answer, isOpen, onClick }: {
   question: string;
   answer: string;
