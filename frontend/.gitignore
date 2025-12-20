@@ -13,6 +13,8 @@ dist
 dist-ssr
 *.local
 marine-order-481405-m2-795d667e8feb.json
+bun.lockb
+
 
 # Editor directories and files
 .vscode/*
@@ -24,4 +26,3 @@ marine-order-481405-m2-795d667e8feb.json
 *.njsproj
 *.sln
 *.sw?
-bun.lockb
