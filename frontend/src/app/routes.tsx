@@ -56,6 +56,7 @@ export function AppRoutes() {
       <Route path="/changelog" element={<ChangelogPage />} />
 
       <Route path="/create" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
+      <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
       <Route path="/dashboard/:sessionId" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/explainability/:sessionId" element={<ProtectedRoute><ExplainabilityPage /></ProtectedRoute>} />
       <Route path="/result/:sessionId" element={<ProtectedRoute><ResultPage /></ProtectedRoute>} />

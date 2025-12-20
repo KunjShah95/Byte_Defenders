@@ -24,7 +24,7 @@ export function Layout({ children }: LayoutProps) {
   const isAuthPage = location.pathname === '/login' || location.pathname === '/signup';
 
   const navItems = [
-    { path: '/', label: 'Home' },
+    { path: '/about', label: 'About Us' },
     { path: '/create', label: 'New Session' },
     { path: '/history', label: 'History' },
   ];

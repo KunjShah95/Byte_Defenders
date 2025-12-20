@@ -1,21 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
 import { Card, CardContent } from '@/components/common/Card';
 import {
   ArrowRight,
-  Zap,
-  Brain,
   RefreshCw,
   Eye,
   GitBranch,
   Layers,
-  Target,
   Clock,
-  Sparkles,
   Shield,
   BarChart3,
-  Users,
   Star,
   ChevronRight,
   Play,
@@ -355,7 +350,7 @@ export default function LandingPage() {
               { icon: '🔍', title: 'Adversarial Review', step: 'CRITIQUE', desc: 'Identifies logical gaps and edge-case failures.' },
               { icon: '✨', title: 'Optimization Loop', step: 'REFINE', desc: 'Iteratively solves for feedback to maximize quality.' },
               { icon: '📊', title: 'Synthesis', step: 'DELIVER', desc: 'Formats insights into production-ready deliverables.' },
-            ].map((agent, index) => (
+            ].map((agent) => (
               <div key={agent.title} className="bg-background group p-12 hover:bg-white/[0.02] transition-colors relative">
                 <div className="text-[10px] font-bold text-primary mb-10 tracking-[0.4em] opacity-40 group-hover:opacity-100 transition-opacity">{agent.step}</div>
                 <div className="text-5xl mb-8 grayscale group-hover:grayscale-0 transition-all duration-500 transform group-hover:scale-110">{agent.icon}</div>
@@ -640,15 +635,14 @@ export default function LandingPage() {
               </p>
               <div className="flex items-center gap-6">
                 {[
-                  { icon: Network, href: '#' },
-                  { icon: GitBranch, href: '#' },
-                  { icon: MessageSquare, href: '#' }
+                  { icon: Network, href: '#', label: 'Network' },
+                  { icon: GitBranch, href: '#', label: 'GitHub' },
+                  { icon: MessageSquare, href: '#', label: 'Chat' }
                 ].map((social, i) => (
-                  <a key={i} href={social.href} className="w-10 h-10 rounded-full border border-white/5 flex items-center justify-center text-muted-foreground hover:text-white hover:border-white/20 transition-all">
+                  <a key={i} href={social.href} aria-label={social.label} className="w-10 h-10 rounded-full border border-white/5 flex items-center justify-center text-muted-foreground hover:text-white hover:border-white/20 transition-all">
                     <social.icon className="h-5 w-5" />
                   </a>
-                ))}
-              </div>
+                ))}              </div>
             </div>
 
             <div>
