@@ -1,0 +1,69 @@
+import { IPersistenceAdapter } from '../services/memory.service';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { config } from '../config';
+
+export class SupabaseAdapter implements IPersistenceAdapter {
+  private client: SupabaseClient | null = null;
+
+  constructor() {
+    const url = config.persistence.supabaseUrl;
+    const anonKey = config.persistence.supabaseKey;
+    if (url && anonKey) {
+      this.client = createClient(url, anonKey);
+    }
+  }
+
+  async initializeSession(sessionId: string): Promise<void> {
+    if (!this.client) return;
+    await this.client.from('state_store').upsert([{ collection_name: 'sessions', key: `session:${sessionId}`, value: JSON.stringify({}) }]);
+  }
+
+  async store(sessionId: string, key: string, value: any): Promise<void> {
+    if (!this.client) return;
+    await this.client.from('state_store').upsert([{ collection_name: 'sessions', key: `${sessionId}:${key}`, value }]);
+  }
+
+  async retrieve(sessionId: string, key: string): Promise<any> {
+    if (!this.client) return null;
+    const { data, error } = await this.client.from('state_store').select('value').eq('collection_name', 'sessions').eq('key', `${sessionId}:${key}`).single();
+    if (error || !data) return null;
+    return data!.value ?? null;
+  }
+
+  async getAll(sessionId: string): Promise<Record<string, any>> {
+    if (!this.client) return {};
+    const { data, error } = await this.client.from('state_store').select('key, value').eq('collection_name', 'sessions');
+    if (error || !data) return {};
+    const result: Record<string, any> = {};
+    (data as any[]).forEach((row) => {
+      result[row.key] = row.value;
+    });
+    return result;
+  }
+
+  async clear(sessionId: string): Promise<void> {
+    if (!this.client) return;
+    await this.client.from('state_store').delete().eq('collection_name', 'sessions');
+  }
+
+  async exists(sessionId: string): Promise<boolean> {
+    if (!this.client) return false;
+    const { count, error } = await this.client.from('state_store').select('1', { count: 'exact' }).eq('collection_name', 'sessions').eq('key', `session:${sessionId}`);
+    if (error) return false;
+    return (count ?? 0) > 0;
+  }
+
+  async pushContext(sessionId: string, agentName: string, context: Record<string, any>): Promise<void> {
+    const existing = await this.retrieve(sessionId, 'executionHistory');
+    const arr = Array.isArray(existing) ? existing : [];
+    arr.push({ agent: agentName, context, timestamp: new Date() });
+    await this.store(sessionId, 'executionHistory', arr);
+  }
+
+  async getExecutionHistory(sessionId: string): Promise<any[]> {
+    const hist = await this.retrieve(sessionId, 'executionHistory');
+    return Array.isArray(hist) ? hist : [];
+  }
+}
+
+export default SupabaseAdapter;

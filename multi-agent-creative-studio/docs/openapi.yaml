@@ -1,0 +1,45 @@
+openapi: 3.0.3
+info:
+  title: Byte Defenders API
+  version: 1.0.0
+  description: Minimal OpenAPI spec for backend endpoints used by the Motia-based studio.
+servers:
+  - url: http://localhost:3000
+paths:
+  /api/v1/sessions:
+    post:
+      summary: Create session
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                title:
+                  type: string
+                description:
+                  type: string
+                metadata:
+                  type: object
+      responses:
+        '201':
+          description: Session created
+        '400':
+          description: Invalid input
+  /api/v1/sessions/{sessionId}:
+    get:
+      summary: Get session
+      parameters:
+        - in: path
+          name: sessionId
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Session data
+        '404':
+          description: Not found
