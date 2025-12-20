@@ -40,7 +40,7 @@ async function testFirebaseAuth() {
         // Test 4: Test Backend API
         console.log('🔌 Testing Backend API...');
         try {
-            const response = await fetch('http://localhost:3000/api/v1/sessions', {
+            const response = await fetch('http://localhost:3001/api/v1/sessions', {
                 method: 'POST',
                 headers: {
                     'Authorization': `Bearer ${token}`,
@@ -61,7 +61,7 @@ async function testFirebaseAuth() {
             }
         } catch (error) {
             console.log('❌ Backend connection failed');
-            console.log('   Make sure the backend server is running on http://localhost:3000');
+            console.log('   Make sure the backend server is running on http://localhost:3001');
             console.log('   Error:', error);
         }
 

@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSession } from '@/store/session.context';
+import { useSession } from '@/hooks/use-session';
 import { SessionList } from '@/components/session/SessionList';
 import { Button } from '@/components/common/Button';
 import { PageLoader } from '@/components/common/Loader';

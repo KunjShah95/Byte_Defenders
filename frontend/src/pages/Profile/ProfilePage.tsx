@@ -1,20 +1,18 @@
-import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/store/auth.context';
-import { useSession } from '@/store/session.context';
+import { useSession } from '@/hooks/use-session';
 import { Button } from '@/components/common/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/common/Card';
 import { PageLoader } from '@/components/common/Loader';
 import {
-    User,
     Mail,
     Calendar,
     Crown,
-    BarChart3,
     LogOut,
-    Settings,
+    History,
+    BarChart3,
     CreditCard,
-    History
+    Settings
 } from 'lucide-react';
 
 export default function ProfilePage() {
@@ -161,7 +159,7 @@ export default function ProfilePage() {
                         </button>
 
                         <button
-                            onClick={() => navigate('/create')}
+                            onClick={() => navigate('/')}
                             className="w-full flex items-center gap-3 p-3 rounded-lg hover:bg-secondary/50 transition-colors text-left"
                         >
                             <div className="h-10 w-10 rounded-lg bg-success/10 flex items-center justify-center text-success">

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSession } from '@/store/session.context';
+import { useSession } from '@/hooks/use-session';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/common/Tabs';
 import { IdeaView } from '@/components/output/IdeaView';
 import { CriticView } from '@/components/output/CriticView';

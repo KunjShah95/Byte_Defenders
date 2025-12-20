@@ -23,10 +23,11 @@ CREATE TABLE IF NOT EXISTS profiles (
 ALTER TABLE state_store ENABLE ROW LEVEL SECURITY;
 ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
 
--- Note: In a production app, you would add policies to restrict access.
--- For now, we'll allow all authenticated users to read/write their own profiles.
--- The state_store might need more complex logic if sessions are user-specific.
+-- State Store policies (permissive for now to allow backend functionality)
+CREATE POLICY "Enable all access for state_store" ON state_store
+  FOR ALL USING (true) WITH CHECK (true);
 
+-- Profiles policies
 CREATE POLICY "Users can view their own profile" ON profiles
   FOR SELECT USING (auth.uid() = id);
 

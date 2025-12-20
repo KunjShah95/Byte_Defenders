@@ -2,7 +2,7 @@
 
 ## Base URL
 
-```
+```API
 http://localhost:3000/api/v1
 ```
 
@@ -10,7 +10,7 @@ http://localhost:3000/api/v1
 
 ### Get Server Health
 
-```
+```http
 GET /health
 ```
 
@@ -30,7 +30,7 @@ GET /health
 
 ### Create Session
 
-```json
+```http
 POST /sessions
 ```
 
@@ -79,7 +79,7 @@ POST /sessions
 
 ### Get Session Details
 
-```
+```http
 GET /sessions/{sessionId}
 ```
 
@@ -116,7 +116,7 @@ GET /sessions/{sessionId}
 
 ### Run Quick Workflow
 
-```
+```http
 POST /sessions/{sessionId}/workflow/quick
 ```
 
@@ -174,7 +174,7 @@ POST /sessions/{sessionId}/workflow/quick
 
 ### Run Full Workflow
 
-```
+```http
 POST /sessions/{sessionId}/workflow/full
 ```
 
@@ -218,7 +218,7 @@ POST /sessions/{sessionId}/workflow/full
 
 ### Get Session Results
 
-```
+```http
 GET /sessions/{sessionId}/result
 ```
 
@@ -247,7 +247,7 @@ GET /sessions/{sessionId}/result
 
 ### Get Explainability Data
 
-```
+```http
 GET /sessions/{sessionId}/explainability
 ```
 
@@ -315,7 +315,7 @@ GET /sessions/{sessionId}/explainability
 
 ### Get Prompt Statistics
 
-```
+```http
 GET /prompts/stats
 ```
 
@@ -338,7 +338,7 @@ GET /prompts/stats
 
 ### Get Available Templates
 
-```
+```http
 GET /prompts/{agentType}/templates
 ```
 
@@ -385,7 +385,7 @@ GET /prompts/{agentType}/templates
 
 ### Get Recommended Template
 
-```
+```http
 GET /prompts/{agentType}/recommended
 ```
 
@@ -412,7 +412,7 @@ GET /prompts/{agentType}/recommended
 
 ### Build Custom Prompt
 
-```
+```http
 POST /prompts/build
 ```
 
@@ -469,7 +469,7 @@ POST /prompts/build
 
 ### Export All Prompts
 
-```
+```http
 GET /prompts/export/all
 ```
 

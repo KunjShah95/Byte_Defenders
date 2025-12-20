@@ -1,20 +1,7 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { useState, useCallback, ReactNode } from 'react';
 import { Session, SessionInput } from '@/types/session.types';
 import { sessionService } from '@/services/session.service';
-
-interface SessionContextType {
-  currentSession: Session | null;
-  sessions: Session[];
-  isLoading: boolean;
-  error: string | null;
-  createSession: (input: SessionInput) => Promise<string>;
-  loadSession: (id: string) => Promise<void>;
-  loadAllSessions: () => Promise<void>;
-  runSession: (id: string) => Promise<void>;
-  clearError: () => void;
-}
-
-const SessionContext = createContext<SessionContextType | undefined>(undefined);
+import { SessionContext } from './session-context-base';
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
@@ -107,12 +94,4 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       {children}
     </SessionContext.Provider>
   );
-}
-
-export function useSession() {
-  const context = useContext(SessionContext);
-  if (context === undefined) {
-    throw new Error('useSession must be used within a SessionProvider');
-  }
-  return context;
 }

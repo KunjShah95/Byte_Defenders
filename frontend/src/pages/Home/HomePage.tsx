@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useSession } from '@/store/session.context';
+import { useSession } from '@/hooks/use-session';
 import { UseCase, USE_CASE_LABELS } from '@/types/session.types';
 import { Button } from '@/components/common/Button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/common/Card';
