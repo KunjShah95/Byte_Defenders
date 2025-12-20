@@ -66,7 +66,7 @@ export const sessionService = {
       if (error.response) {
         throw new Error(`Workflow execution failed: ${error.response.data?.error || error.response.statusText}`);
       } else if (error.request) {
-        throw new Error('Network error: Could not reach the backend server. Please ensure the backend is running on port 3000.');
+        throw new Error('Network error: Could not reach the backend server. Please ensure the backend is running on port 3001.');
       } else {
         throw new Error(`Failed to run session: ${error.message}`);
       }

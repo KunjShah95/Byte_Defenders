@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSession } from '@/store/session.context';
+import { useSession } from '@/hooks/use-session';
 import { AgentCard } from '@/components/agents/AgentCard';
 import { AgentTimeline } from '@/components/agents/AgentTimeline';
 import { Button } from '@/components/common/Button';

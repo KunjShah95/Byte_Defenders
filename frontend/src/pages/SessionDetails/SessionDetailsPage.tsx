@@ -1,6 +1,6 @@
-import React, { useEffect } from 'react';
+import { useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useSession } from '@/store/session.context';
+import { useSession } from '@/hooks/use-session';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/common/Card';
 import { Button } from '@/components/common/Button';
 import { PageLoader } from '@/components/common/Loader';

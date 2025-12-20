@@ -13,42 +13,82 @@ export class SupabaseAdapter implements IPersistenceAdapter {
   }
 
   async initializeSession(sessionId: string): Promise<void> {
-    if (!this.client) return;
-    await this.client.from('state_store').upsert([{ collection_name: 'sessions', key: `session:${sessionId}`, value: JSON.stringify({}) }]);
+    if (!this.client) {
+      console.warn('Supabase client not initialized');
+      return;
+    }
+    const { error } = await this.client.from('state_store').upsert([{ collection_name: 'sessions', key: `session:${sessionId}`, value: JSON.stringify({}) }]);
+    if (error) {
+      console.error('Supabase initializeSession error:', error);
+    }
   }
 
   async store(sessionId: string, key: string, value: any): Promise<void> {
-    if (!this.client) return;
-    await this.client.from('state_store').upsert([{ collection_name: 'sessions', key: `${sessionId}:${key}`, value }]);
+    if (!this.client) {
+      console.warn('Supabase client not initialized');
+      return;
+    }
+    const { error } = await this.client.from('state_store').upsert([{ collection_name: 'sessions', key: `${sessionId}:${key}`, value }]);
+    if (error) {
+      console.error('Supabase store error:', error);
+    }
   }
 
   async retrieve(sessionId: string, key: string): Promise<any> {
     if (!this.client) return null;
-    const { data, error } = await this.client.from('state_store').select('value').eq('collection_name', 'sessions').eq('key', `${sessionId}:${key}`).single();
-    if (error || !data) return null;
-    return data!.value ?? null;
+    try {
+      const { data, error } = await this.client
+        .from('state_store')
+        .select('value')
+        .eq('collection_name', 'sessions')
+        .eq('key', `${sessionId}:${key}`)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Supabase retrieve error:', error);
+        return null;
+      }
+      return data?.value ?? null;
+    } catch (err) {
+      console.error('Unexpected Supabase retrieve error:', err);
+      return null;
+    }
   }
 
   async getAll(sessionId: string): Promise<Record<string, any>> {
     if (!this.client) return {};
     const { data, error } = await this.client.from('state_store').select('key, value').eq('collection_name', 'sessions');
-    if (error || !data) return {};
+    if (error) {
+      console.error('Supabase getAll error:', error);
+      return {};
+    }
+    if (!data) return {};
     const result: Record<string, any> = {};
     (data as any[]).forEach((row) => {
-      result[row.key] = row.value;
+      // Only return keys belonging to this session
+      if (row.key.startsWith(`${sessionId}:`)) {
+        const shortKey = row.key.substring(sessionId.length + 1);
+        result[shortKey] = row.value;
+      }
     });
     return result;
   }
 
   async clear(sessionId: string): Promise<void> {
     if (!this.client) return;
-    await this.client.from('state_store').delete().eq('collection_name', 'sessions');
+    const { error } = await this.client.from('state_store').delete().eq('collection_name', 'sessions');
+    if (error) {
+      console.error('Supabase clear error:', error);
+    }
   }
 
   async exists(sessionId: string): Promise<boolean> {
     if (!this.client) return false;
     const { count, error } = await this.client.from('state_store').select('1', { count: 'exact' }).eq('collection_name', 'sessions').eq('key', `session:${sessionId}`);
-    if (error) return false;
+    if (error) {
+      console.error('Supabase exists error:', error);
+      return false;
+    }
     return (count ?? 0) > 0;
   }
 

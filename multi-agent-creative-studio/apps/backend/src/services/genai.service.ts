@@ -89,7 +89,7 @@ export class GenAIService {
 
     try {
       const model = this.googleAI.getGenerativeModel({
-        model: options.model || 'gemini-pro',
+        model: options.model || this.model,
       });
 
       const generationConfig = {

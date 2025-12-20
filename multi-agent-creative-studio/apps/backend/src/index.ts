@@ -25,6 +25,7 @@ import {
   exportAllPrompts,
 } from './api/prompts';
 import { UUIDUtil } from './utils/uuid';
+import { asyncHandler } from './utils/asyncHandler';
 
 const app: Express = express();
 
@@ -72,73 +73,57 @@ app.get('/health', (req: Request, res: Response) => {
 // API v1 Routes
 
 // Session Management
-app.post('/api/v1/sessions', authMiddleware, createSession);
-app.get('/api/v1/sessions', authMiddleware, getAllSessions);
-app.get('/api/v1/sessions/:sessionId', authMiddleware, getSession);
+app.post('/api/v1/sessions', authMiddleware, asyncHandler(createSession));
+app.get('/api/v1/sessions', authMiddleware, asyncHandler(getAllSessions));
+app.get('/api/v1/sessions/:sessionId', authMiddleware, asyncHandler(getSession));
 
 // Workflow Execution
-app.post('/api/v1/sessions/:sessionId/workflow/quick', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const { sessionId } = req.params;
-    const { topic } = req.body;
+app.post('/api/v1/sessions/:sessionId/workflow/quick', authMiddleware, asyncHandler(async (req: Request, res: Response) => {
+  const { sessionId } = req.params;
+  const { topic } = req.body;
 
-    if (!topic) {
-      res.status(400).json({ error: 'topic is required' });
-      return;
-    }
-
-    const workflow = new CreativeWorkflow();
-    const result = await workflow.quickProcess(sessionId, topic);
-
-    res.json(result);
-  } catch (error) {
-    logger.error('Quick workflow failed', error);
-    res.status(500).json({
-      error: 'Workflow execution failed',
-      details: String(error),
-    });
+  if (!topic) {
+    res.status(400).json({ error: 'topic is required' });
+    return;
   }
-});
 
-app.post('/api/v1/sessions/:sessionId/workflow/full', authMiddleware, async (req: Request, res: Response) => {
-  try {
-    const { sessionId } = req.params;
-    const { topic, audience } = req.body;
+  const workflow = new CreativeWorkflow();
+  const result = await workflow.quickProcess(sessionId, topic);
 
-    if (!topic) {
-      res.status(400).json({ error: 'topic is required' });
-      return;
-    }
+  res.json(result);
+}));
 
-    const workflow = new CreativeWorkflow();
-    const result = await workflow.fullProcess(sessionId, {
-      topic,
-      audience: audience || 'general',
-    });
+app.post('/api/v1/sessions/:sessionId/workflow/full', authMiddleware, asyncHandler(async (req: Request, res: Response) => {
+  const { sessionId } = req.params;
+  const { topic, audience } = req.body;
 
-    res.json(result);
-  } catch (error) {
-    logger.error('Full workflow failed', error);
-    res.status(500).json({
-      error: 'Workflow execution failed',
-      details: String(error),
-    });
+  if (!topic) {
+    res.status(400).json({ error: 'topic is required' });
+    return;
   }
-});
 
-app.post('/api/v1/sessions/:sessionId/workflow/custom', authMiddleware, runWorkflow);
+  const workflow = new CreativeWorkflow();
+  const result = await workflow.fullProcess(sessionId, {
+    topic,
+    audience: audience || 'general',
+  });
+
+  res.json(result);
+}));
+
+app.post('/api/v1/sessions/:sessionId/workflow/custom', authMiddleware, asyncHandler(runWorkflow));
 
 // Results
-app.get('/api/v1/sessions/:sessionId/result', authMiddleware, getResult);
-app.get('/api/v1/sessions/:sessionId/explainability', authMiddleware, getExplainability);
+app.get('/api/v1/sessions/:sessionId/result', authMiddleware, asyncHandler(getResult));
+app.get('/api/v1/sessions/:sessionId/explainability', authMiddleware, asyncHandler(getExplainability));
 
 
 // Prompt Management
-app.get('/api/v1/prompts/stats', getPromptStats);
-app.get('/api/v1/prompts/:agentType/templates', getAvailablePrompts);
-app.get('/api/v1/prompts/:agentType/recommended', getRecommendedTemplate);
-app.post('/api/v1/prompts/build', buildPrompt);
-app.get('/api/v1/prompts/export/all', exportAllPrompts);
+app.get('/api/v1/prompts/stats', asyncHandler(getPromptStats));
+app.get('/api/v1/prompts/:agentType/templates', asyncHandler(getAvailablePrompts));
+app.get('/api/v1/prompts/:agentType/recommended', asyncHandler(getRecommendedTemplate));
+app.post('/api/v1/prompts/build', asyncHandler(buildPrompt));
+app.get('/api/v1/prompts/export/all', asyncHandler(exportAllPrompts));
 
 // Event subscription endpoint (for real-time updates)
 app.get('/api/v1/events/subscribe', (req: Request, res: Response) => {
@@ -168,10 +153,32 @@ app.use((req: Request, res: Response) => {
 
 // Error handler
 app.use((err: any, req: Request, res: Response, next: express.NextFunction) => {
-  logger.error('Unhandled error', err);
-  res.status(500).json({
+  const errorDetails = {
+    message: err.message || 'Internal Server Error',
+    stack: err.stack,
+    name: err.name,
+    ...(err.response?.data && { apiError: err.response.data }),
+  };
+
+  logger.error('Unhandled error', {
+    error: errorDetails,
+    path: req.path,
+    method: req.method,
+    requestId: (req as any).requestId,
+  });
+
+  // Don't send response if headers already sent
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  res.status(err.status || 500).json({
     error: 'Internal Server Error',
-    details: config.nodeEnv === 'development' ? err.message : undefined,
+    message: config.nodeEnv === 'development' ? err.message : 'An error occurred',
+    ...(config.nodeEnv === 'development' && {
+      details: errorDetails,
+      stack: err.stack,
+    }),
   });
 });
 
