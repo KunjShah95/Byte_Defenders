@@ -7,7 +7,7 @@ dotenv.config();
 
 export const config = {
   // Server
-  port: parseInt(process.env.PORT || '3000', 10),
+  port: parseInt(process.env.PORT || '3001', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 
   // Logging
@@ -18,7 +18,7 @@ export const config = {
     openaiKey: process.env.OPENAI_API_KEY || '',
     googleKey: process.env.GOOGLE_API_KEY || '',
     baseURL: process.env.GENAI_BASE_URL || 'https://api.openai.com/v1',
-    model: process.env.GENAI_MODEL || 'gemini-1.5-flash',
+    model: process.env.GENAI_MODEL || 'gemini-3.0-pro-preview',
     provider: process.env.GENAI_PROVIDER || 'google', // openai | google | mock
     // In development, default to falling back to the mock provider if the
     // configured upstream provider is missing keys or errors.

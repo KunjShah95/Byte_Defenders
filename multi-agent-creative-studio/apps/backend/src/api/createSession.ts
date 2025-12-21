@@ -44,8 +44,8 @@ export async function createSession(req: Request, res: Response): Promise<void> 
       metadata: metadata || {},
     };
 
-    // Initialize memory for this session
-    await memoryService.initializeSession(sessionId);
+    // Initialize memory for this session with userId
+    await memoryService.initializeSession(sessionId, userId);
     await memoryService.store(sessionId, 'sessionData', session);
 
     logger.info('Session created', { sessionId, userId });

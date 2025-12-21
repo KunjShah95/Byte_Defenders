@@ -123,6 +123,40 @@ export class SupabaseAdapter implements IPersistenceAdapter {
     const hist = await this.retrieve(sessionId, 'executionHistory');
     return Array.isArray(hist) ? hist : [];
   }
-}
 
-export default SupabaseAdapter;
+  async getAllUserSessions(userId: string): Promise<any[]> {
+    if (!this.client) return [];
+    try {
+      // Get all sessions for this user (sessionData keys that match pattern)
+      const { data, error } = await this.client
+        .from('state_store')
+        .select('key, value')
+        .eq('collection_name', 'sessions')
+        .like('key', '%:sessionData')
+        .order('updated_at', { ascending: false });
+
+      if (error) {
+        console.error('Supabase getAllUserSessions error:', error);
+        return [];
+      }
+
+      if (!data) return [];
+
+      const sessions: any[] = [];
+      for (const row of data as any[]) {
+        const sessionData = row.value;
+        if (sessionData && sessionData.userId === userId) {
+          sessions.push({
+            ...sessionData,
+            updatedAt: row.updated_at,
+          });
+        }
+      }
+
+      return sessions;
+    } catch (err) {
+      console.error('Unexpected Supabase getAllUserSessions error:', err);
+      return [];
+    }
+  }
+}

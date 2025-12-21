@@ -196,7 +196,9 @@ app.use((err: any, req: Request, res: Response, next: express.NextFunction) => {
 
 // Start server
 const PORT = config.port;
+console.log(`Attempting to start server on port ${PORT}...`);
 const server = app.listen(PORT, () => {
+  console.log(`✅ Server is now listening on port ${PORT}`);
   logger.info(`Server started successfully`, {
     port: PORT,
     env: config.nodeEnv,

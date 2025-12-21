@@ -7,4 +7,13 @@ venv
 dist
 *.pyc
 
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+*.env
+!.env.example
+
 bun.lockb

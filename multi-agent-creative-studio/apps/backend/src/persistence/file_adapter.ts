@@ -7,6 +7,7 @@ export class FileAdapter implements IPersistenceAdapter {
     private filePath: string;
     private logger = Logger.getLogger('MemoryFileAdapter');
     private memoryCache: Map<string, MemoryStore> = new Map();
+    private sessionMetadata: Map<string, { userId?: string; createdAt: Date; updatedAt: Date }> = new Map();
     private loaded: boolean = false;
 
     constructor(filePath?: string) {
@@ -37,6 +38,13 @@ export class FileAdapter implements IPersistenceAdapter {
                         createdAt: new Date(session.createdAt),
                         updatedAt: new Date(session.updatedAt),
                     });
+
+                    // Store metadata for session tracking
+                    this.sessionMetadata.set(id, {
+                        userId: session.userId,
+                        createdAt: new Date(session.createdAt),
+                        updatedAt: new Date(session.updatedAt),
+                    });
                 });
 
                 this.loaded = true;
@@ -56,8 +64,10 @@ export class FileAdapter implements IPersistenceAdapter {
                 const dataObj: Record<string, any> = {};
                 store.data.forEach((val, key) => dataObj[key] = val);
 
+                const metadata = this.sessionMetadata.get(id);
                 exportable[id] = {
                     sessionId: store.sessionId,
+                    userId: metadata?.userId,
                     data: dataObj,
                     createdAt: store.createdAt,
                     updatedAt: store.updatedAt
@@ -70,16 +80,24 @@ export class FileAdapter implements IPersistenceAdapter {
         }
     }
 
-    async initializeSession(sessionId: string): Promise<void> {
+    async initializeSession(sessionId: string, userId?: string): Promise<void> {
         if (!this.memoryCache.has(sessionId)) {
+            const now = new Date();
             this.memoryCache.set(sessionId, {
                 sessionId,
                 data: new Map(),
-                createdAt: new Date(),
-                updatedAt: new Date(),
+                createdAt: now,
+                updatedAt: now,
             });
+            
+            this.sessionMetadata.set(sessionId, {
+                userId,
+                createdAt: now,
+                updatedAt: now,
+            });
+            
             await this.saveToFile();
-            this.logger.info(`Memory initialized for session: ${sessionId}`);
+            this.logger.info(`Memory initialized for session: ${sessionId}`, { userId });
         }
     }
 
@@ -90,6 +108,13 @@ export class FileAdapter implements IPersistenceAdapter {
         const store = this.memoryCache.get(sessionId)!;
         store.data.set(key, value);
         store.updatedAt = new Date();
+        
+        // Update metadata
+        const metadata = this.sessionMetadata.get(sessionId);
+        if (metadata) {
+            metadata.updatedAt = new Date();
+        }
+        
         await this.saveToFile();
     }
 
@@ -131,5 +156,28 @@ export class FileAdapter implements IPersistenceAdapter {
 
     async getExecutionHistory(sessionId: string): Promise<any[]> {
         return (await this.retrieve(sessionId, 'executionHistory')) || [];
+    }
+
+    /**
+     * Get all sessions for a specific user
+     */
+    async getAllUserSessions(userId: string): Promise<any[]> {
+        const sessions: any[] = [];
+        
+        this.memoryCache.forEach((store, sessionId) => {
+            const metadata = this.sessionMetadata.get(sessionId);
+            if (metadata?.userId === userId) {
+                const sessionData = store.data.get('sessionData');
+                sessions.push({
+                    ...sessionData,
+                    sessionId,
+                    createdAt: metadata.createdAt,
+                    updatedAt: metadata.updatedAt,
+                    executionHistoryLength: store.data.get('executionHistory')?.length || 0,
+                });
+            }
+        });
+        
+        return sessions.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
     }
 }

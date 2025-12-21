@@ -62,4 +62,10 @@ export class RedisAdapter implements IPersistenceAdapter {
     const s = this.cache.get(sessionId);
     return (s?.data?.get(this.pref('executionHistory')) as any[]) || [];
   }
+
+  async getAllUserSessions(userId: string): Promise<any[]> {
+    // Redis adapter doesn't support filtering by user
+    // Return empty array - this is for development only
+    return [];
+  }
 }

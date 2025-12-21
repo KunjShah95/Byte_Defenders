@@ -11,7 +11,7 @@ import { cn } from '@/lib/utils';
 export default function SessionDetailsPage() {
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
-  const { currentSession, loadSession, isLoading } = useSession();
+  const { currentSession, loadSession, isLoading, error } = useSession();
 
   useEffect(() => {
     if (sessionId) {
@@ -19,8 +19,36 @@ export default function SessionDetailsPage() {
     }
   }, [sessionId]);
 
-  if (isLoading || !currentSession) {
+  if (isLoading) {
     return <PageLoader />;
+  }
+
+  if (error || !currentSession) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] p-6">
+        <Card variant="glass" className="max-w-md w-full">
+          <CardHeader>
+            <CardTitle className="text-xl text-center text-destructive">
+              Session Expired / Not Found
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-center space-y-4">
+            <p className="text-muted-foreground">
+              The session data is missing. This occurs because the backend uses in-memory storage, 
+              which is cleared on every restart. Please start a new session.
+            </p>
+            <div className="flex gap-3 justify-center">
+              <Button variant="secondary" onClick={() => navigate('/history')}>
+                View History
+              </Button>
+              <Button onClick={() => navigate('/dashboard')}>
+                Start New Session
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const formatDate = (dateString: string) => {
@@ -134,24 +162,31 @@ export default function SessionDetailsPage() {
           <CardTitle className="text-base">Agent Outputs</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {currentSession.agents.map((agent) => (
-            <div key={agent.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
-              <div className="flex items-center gap-2 mb-2">
-                <span>{AGENT_CONFIG[agent.type].icon}</span>
-                <span className="font-medium">{AGENT_CONFIG[agent.type].name}</span>
-                {agent.output?.score && (
-                  <span className="ml-auto font-mono text-sm text-primary">
-                    {agent.output.score.toFixed(1)}
-                  </span>
+          {currentSession.agents.map((agent) => {
+            const config = AGENT_CONFIG[agent.type] || {
+              name: agent.name || 'Unknown Agent',
+              description: '',
+              icon: '🤖',
+            };
+            return (
+              <div key={agent.id} className="border-b border-border pb-4 last:border-0 last:pb-0">
+                <div className="flex items-center gap-2 mb-2">
+                  <span>{config.icon}</span>
+                  <span className="font-medium">{config.name}</span>
+                  {agent.output?.score && (
+                    <span className="ml-auto font-mono text-sm text-primary">
+                      {agent.output.score.toFixed(1)}
+                    </span>
+                  )}
+                </div>
+                {agent.output ? (
+                  <p className="text-sm text-muted-foreground">{agent.output.content}</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground italic">No output</p>
                 )}
               </div>
-              {agent.output ? (
-                <p className="text-sm text-muted-foreground">{agent.output.content}</p>
-              ) : (
-                <p className="text-sm text-muted-foreground italic">No output</p>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </CardContent>
       </Card>
     </div>

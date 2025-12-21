@@ -21,12 +21,14 @@ export interface Agent {
   id: string;
   type: AgentType;
   name: string;
-  description: string;
+  description?: string;
   status: AgentStatus;
-  logs: AgentLog[];
+  logs?: AgentLog[];
   output?: AgentOutput;
   startedAt?: string;
   completedAt?: string;
+  reasoning?: string;
+  duration?: number;
 }
 
 export const AGENT_CONFIG: Record<AgentType, { name: string; description: string; icon: string }> = {

@@ -10,7 +10,14 @@ interface AgentCardProps {
 }
 
 export function AgentCard({ agent, className }: AgentCardProps) {
-  const config = AGENT_CONFIG[agent.type];
+  const config = AGENT_CONFIG[agent.type] || {
+    name: agent.name || 'Unknown Agent',
+    description: agent.description || 'No description available',
+    icon: '🤖',
+  };
+
+  // Ensure status has a valid value
+  const status = agent.status || 'waiting';
 
   const statusColors = {
     waiting: 'status-dot-waiting',
@@ -38,8 +45,8 @@ export function AgentCard({ agent, className }: AgentCardProps) {
       variant="glass"
       className={cn(
         'flex flex-col transition-all duration-300',
-        agent.status === 'running' && 'ring-1 ring-primary/50',
-        agent.status === 'done' && 'ring-1 ring-success/30',
+        status === 'running' && 'ring-1 ring-primary/50',
+        status === 'done' && 'ring-1 ring-success/30',
         className
       )}
     >
@@ -47,24 +54,24 @@ export function AgentCard({ agent, className }: AgentCardProps) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <span className="text-xl">{config.icon}</span>
-            <CardTitle className="text-base">{config.name}</CardTitle>
+            <CardTitle className="text-base">{agent.name || config.name}</CardTitle>
           </div>
           <div
             className={cn(
               'flex items-center gap-1.5 rounded-full px-2 py-0.5 text-xs font-medium',
-              statusBadgeColors[agent.status]
+              statusBadgeColors[status]
             )}
           >
-            <div className={cn('status-dot', statusColors[agent.status])} />
-            {statusLabels[agent.status]}
+            <div className={cn('status-dot', statusColors[status])} />
+            {statusLabels[status]}
           </div>
         </div>
-        <CardDescription className="text-xs">{config.description}</CardDescription>
+        <CardDescription className="text-xs">{agent.description || config.description}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1">
-        <AgentLogs logs={agent.logs} isRunning={agent.status === 'running'} />
+        <AgentLogs logs={agent.logs} isRunning={status === 'running'} />
       </CardContent>
-      {agent.output && agent.status === 'done' && (
+      {agent.output && status === 'done' && (
         <div className="border-t border-border px-4 py-3">
           <div className="flex items-center justify-between text-xs">
             <span className="text-muted-foreground">Score</span>

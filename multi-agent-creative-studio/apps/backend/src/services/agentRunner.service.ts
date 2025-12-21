@@ -46,7 +46,7 @@ export class AgentRunnerService {
       type: 'idea',
       defaultTemplate: 'creative',
       temperature: 0.9,
-      maxTokens: 1500,
+      maxTokens: 5000, // Increased for very comprehensive idea generation with multiple detailed ideas
     });
 
     this.agents.set('critic', {
@@ -54,7 +54,7 @@ export class AgentRunnerService {
       type: 'critic',
       defaultTemplate: 'thorough',
       temperature: 0.7,
-      maxTokens: 1000,
+      maxTokens: 4500, // Increased for very detailed, multi-dimensional critique
     });
 
     this.agents.set('refiner', {
@@ -62,7 +62,7 @@ export class AgentRunnerService {
       type: 'refiner',
       defaultTemplate: 'improvement',
       temperature: 0.7,
-      maxTokens: 1200,
+      maxTokens: 4500, // Increased for comprehensive refinement with multiple improvements
     });
 
     this.agents.set('presenter', {
@@ -70,7 +70,7 @@ export class AgentRunnerService {
       type: 'presenter',
       defaultTemplate: 'detailed',
       temperature: 0.6,
-      maxTokens: 1000,
+      maxTokens: 4500, // Increased for complete presentations with all sections
     });
 
     this.agents.set('researcher', {
@@ -78,7 +78,7 @@ export class AgentRunnerService {
       type: 'researcher',
       defaultTemplate: 'general',
       temperature: 0.5,
-      maxTokens: 2000,
+      maxTokens: 4500, // Increased for thorough, well-researched analysis
     });
 
     this.agents.set('coder', {
@@ -86,7 +86,7 @@ export class AgentRunnerService {
       type: 'coder',
       defaultTemplate: 'implementation',
       temperature: 0.2,
-      maxTokens: 2500,
+      maxTokens: 6000, // Increased for complete, production-ready code with comments
     });
   }
 
@@ -147,14 +147,20 @@ export class AgentRunnerService {
         success: true,
       };
 
-      // Store in memory
+      // Store in memory with complete context
       this.memoryService.pushContext(
         request.sessionId,
         agentConfig.name,
         {
+          agentType: request.agentType,
+          input: request.input,
           output: agentOutput.output,
           reasoning: agentOutput.reasoning,
+          duration: agentOutput.duration,
           template: templateName,
+          originalIdea: request.input?.topic || request.input,
+          idea: request.input?.topic || request.input,
+          topic: request.input?.topic,
         },
         request.agentType,
       );

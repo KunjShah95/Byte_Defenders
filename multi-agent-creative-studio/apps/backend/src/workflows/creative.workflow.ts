@@ -118,6 +118,15 @@ export class CreativeWorkflow {
         totalDuration,
       };
 
+      // Update session status to completed
+      const sessionData = await this.memoryService.retrieve(sessionId, 'sessionData');
+      if (sessionData) {
+        sessionData.status = 'completed';
+        sessionData.progress = 100;
+        sessionData.updatedAt = new Date();
+        await this.memoryService.store(sessionId, 'sessionData', sessionData);
+      }
+
       // Publish workflow completed event
       await this.eventBus.publish('workflow:completed', {
         sessionId,
@@ -133,6 +142,15 @@ export class CreativeWorkflow {
       return result;
     } catch (error) {
       this.logger.error('Creative workflow failed', error);
+      
+      // Update session status to failed
+      const sessionData = await this.memoryService.retrieve(sessionId, 'sessionData');
+      if (sessionData) {
+        sessionData.status = 'failed';
+        sessionData.updatedAt = new Date();
+        await this.memoryService.store(sessionId, 'sessionData', sessionData);
+      }
+
       await this.eventBus.publish('workflow:failed', {
         sessionId,
         error: String(error),

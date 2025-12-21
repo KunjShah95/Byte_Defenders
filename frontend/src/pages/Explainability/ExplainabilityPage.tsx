@@ -30,6 +30,9 @@ export default function ExplainabilityPage() {
   const refinerAgent = currentSession.agents.find((a) => a.type === 'refiner');
   const presenterAgent = currentSession.agents.find((a) => a.type === 'presenter');
 
+  // Check if any agents have output
+  const hasAnyOutput = currentSession.agents.some(agent => agent.output);
+
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
@@ -43,81 +46,132 @@ export default function ExplainabilityPage() {
           <Button variant="secondary" onClick={() => navigate(`/dashboard/${sessionId}`)}>
             Back to Dashboard
           </Button>
-          <Button onClick={() => navigate(`/result/${sessionId}`)}>
-            View Results
-          </Button>
+          {currentSession.status === 'completed' && (
+            <Button onClick={() => navigate(`/result/${sessionId}`)}>
+              View Results
+            </Button>
+          )}
         </div>
       </div>
 
-      <Tabs defaultValue="idea">
-        <TabsList className="w-full justify-start">
-          <TabsTrigger value="idea">
-            {AGENT_CONFIG.idea.icon} Idea
-          </TabsTrigger>
-          <TabsTrigger value="critic">
-            {AGENT_CONFIG.critic.icon} Critic
-          </TabsTrigger>
-          <TabsTrigger value="refiner">
-            {AGENT_CONFIG.refiner.icon} Refiner
-          </TabsTrigger>
-          <TabsTrigger value="final">
-            {AGENT_CONFIG.presenter.icon} Final
-          </TabsTrigger>
-        </TabsList>
+      {!hasAnyOutput && currentSession.status !== 'completed' && (
+        <Card variant="glass" className="border-warning/50">
+          <CardContent className="py-8 text-center space-y-4">
+            <div className="flex justify-center">
+              <div className="relative flex h-12 w-12">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-12 w-12 bg-primary items-center justify-center text-2xl">
+                  ⚙️
+                </span>
+              </div>
+            </div>
+            <div>
+              <p className="text-foreground font-semibold mb-2">Session In Progress</p>
+              <p className="text-muted-foreground text-sm">
+                The agents are still processing your request. Explainability data will be available once the session completes.
+              </p>
+            </div>
+            <Button onClick={() => navigate(`/dashboard/${sessionId}`)}>
+              Go to Dashboard
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
-        <TabsContent value="idea">
-          {ideaAgent?.output ? (
-            <IdeaView output={ideaAgent.output} />
-          ) : (
-            <EmptyState agent="Idea" />
-          )}
-        </TabsContent>
+      {!hasAnyOutput && currentSession.status === 'completed' && (
+        <Card variant="glass" className="border-destructive/50">
+          <CardContent className="py-8 text-center space-y-4">
+            <p className="text-destructive font-semibold">No Explainability Data Available</p>
+            <p className="text-muted-foreground text-sm">
+              This session completed but no agent output data was found. This may happen if:
+            </p>
+            <ul className="text-sm text-muted-foreground text-left max-w-md mx-auto space-y-1">
+              <li>• The backend was restarted (in-memory storage)</li>
+              <li>• The session was created without explainability mode</li>
+              <li>• There was an error during execution</li>
+            </ul>
+            <Button onClick={() => navigate('/')}>
+              Start New Session
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
-        <TabsContent value="critic">
-          {criticAgent?.output ? (
-            <CriticView output={criticAgent.output} />
-          ) : (
-            <EmptyState agent="Critic" />
-          )}
-        </TabsContent>
+      {hasAnyOutput && (
+        <Tabs defaultValue="idea">
+          <TabsList className="w-full justify-start">
+            <TabsTrigger value="idea" className="flex items-center gap-1.5">
+              {AGENT_CONFIG.idea.icon} Idea
+              {ideaAgent?.output && <span className="text-xs text-success">✓</span>}
+            </TabsTrigger>
+            <TabsTrigger value="critic" className="flex items-center gap-1.5">
+              {AGENT_CONFIG.critic.icon} Critic
+              {criticAgent?.output && <span className="text-xs text-success">✓</span>}
+            </TabsTrigger>
+            <TabsTrigger value="refiner" className="flex items-center gap-1.5">
+              {AGENT_CONFIG.refiner.icon} Refiner
+              {refinerAgent?.output && <span className="text-xs text-success">✓</span>}
+            </TabsTrigger>
+            <TabsTrigger value="final" className="flex items-center gap-1.5">
+              {AGENT_CONFIG.presenter.icon} Final
+              {presenterAgent?.output && <span className="text-xs text-success">✓</span>}
+            </TabsTrigger>
+          </TabsList>
 
-        <TabsContent value="refiner">
-          {refinerAgent?.output ? (
-            <RefinerView output={refinerAgent.output} />
-          ) : (
-            <EmptyState agent="Refiner" />
-          )}
-        </TabsContent>
+          <TabsContent value="idea">
+            {ideaAgent?.output ? (
+              <IdeaView output={ideaAgent.output} />
+            ) : (
+              <EmptyState agent="Idea" />
+            )}
+          </TabsContent>
 
-        <TabsContent value="final">
-          {presenterAgent?.output ? (
-            <Card variant="glass">
-              <CardContent className="pt-4 space-y-4">
-                <div>
-                  <h4 className="text-sm font-semibold text-primary mb-2">Presenter Output</h4>
-                  <p className="text-sm text-foreground">{presenterAgent.output.content}</p>
-                </div>
-                {presenterAgent.output.structuredData && (
+          <TabsContent value="critic">
+            {criticAgent?.output ? (
+              <CriticView output={criticAgent.output} />
+            ) : (
+              <EmptyState agent="Critic" />
+            )}
+          </TabsContent>
+
+          <TabsContent value="refiner">
+            {refinerAgent?.output ? (
+              <RefinerView output={refinerAgent.output} />
+            ) : (
+              <EmptyState agent="Refiner" />
+            )}
+          </TabsContent>
+
+          <TabsContent value="final">
+            {presenterAgent?.output ? (
+              <Card variant="glass">
+                <CardContent className="pt-4 space-y-4">
                   <div>
-                    <h5 className="text-xs text-muted-foreground mb-2">Structured Data</h5>
-                    <pre className="bg-secondary/50 rounded-lg p-4 text-xs font-mono text-foreground overflow-x-auto">
-                      {JSON.stringify(presenterAgent.output.structuredData, null, 2)}
-                    </pre>
+                    <h4 className="text-sm font-semibold text-primary mb-2">Presenter Output</h4>
+                    <p className="text-sm text-foreground">{presenterAgent.output.content}</p>
                   </div>
-                )}
-                <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
-                  <span className="text-muted-foreground">Final Score</span>
-                  <span className="font-mono font-bold text-primary">
-                    {presenterAgent.output.score?.toFixed(1)}
-                  </span>
-                </div>
-              </CardContent>
-            </Card>
-          ) : (
-            <EmptyState agent="Presenter" />
-          )}
-        </TabsContent>
-      </Tabs>
+                  {presenterAgent.output.structuredData && (
+                    <div>
+                      <h5 className="text-xs text-muted-foreground mb-2">Structured Data</h5>
+                      <pre className="bg-secondary/50 rounded-lg p-4 text-xs font-mono text-foreground overflow-x-auto">
+                        {JSON.stringify(presenterAgent.output.structuredData, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between text-sm pt-2 border-t border-border">
+                    <span className="text-muted-foreground">Final Score</span>
+                    <span className="font-mono font-bold text-primary">
+                      {presenterAgent.output.score?.toFixed(1)}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <EmptyState agent="Presenter" />
+            )}
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 }

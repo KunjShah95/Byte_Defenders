@@ -10,7 +10,12 @@ build/
 
 # Environment
 .env.local
+.env.development
+.env.production
+.env.test
 .env.*.local
+*.env
+!.env.example
 firebase-service-account.json
 
 # IDE
@@ -47,3 +52,5 @@ Thumbs.db
 # Editor backups
 *~
 *.orig
+
+.env

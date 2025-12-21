@@ -1,14 +1,14 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { AgentLog } from '@/types/agent.types';
 import { cn } from '@/lib/utils';
 
 interface AgentLogsProps {
-  logs: AgentLog[];
+  logs?: AgentLog[];
   isRunning?: boolean;
   maxHeight?: string;
 }
 
-export function AgentLogs({ logs, isRunning, maxHeight = '120px' }: AgentLogsProps) {
+export function AgentLogs({ logs = [], isRunning, maxHeight = '120px' }: AgentLogsProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -24,7 +24,7 @@ export function AgentLogs({ logs, isRunning, maxHeight = '120px' }: AgentLogsPro
     error: 'text-destructive',
   };
 
-  if (logs.length === 0) {
+  if (!logs || logs.length === 0) {
     return (
       <div
         className="flex items-center justify-center rounded-md bg-secondary/30 text-muted-foreground"

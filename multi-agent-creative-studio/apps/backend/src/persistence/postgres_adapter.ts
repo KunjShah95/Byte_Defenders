@@ -95,4 +95,33 @@ export class PostgresAdapter implements IPersistenceAdapter {
     const hist = await this.retrieve(sessionId, 'executionHistory');
     return Array.isArray(hist) ? hist : [];
   }
+
+  async getAllUserSessions(userId: string): Promise<any[]> {
+    if (!this.pool) return [];
+    try {
+      // Get all sessionData entries and filter by userId
+      const res = await this.pool.query(
+        `SELECT value, updated_at FROM state_store 
+         WHERE collection_name = $1 AND key LIKE $2
+         ORDER BY updated_at DESC`,
+        ['sessions', '%:sessionData']
+      );
+
+      const sessions: any[] = [];
+      res.rows.forEach((row: any) => {
+        const sessionData = row.value;
+        if (sessionData && sessionData.userId === userId) {
+          sessions.push({
+            ...sessionData,
+            updatedAt: row.updated_at,
+          });
+        }
+      });
+
+      return sessions;
+    } catch (err) {
+      console.error('PostgreSQL getAllUserSessions error:', err);
+      return [];
+    }
+  }
 }

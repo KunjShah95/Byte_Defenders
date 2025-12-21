@@ -18,7 +18,7 @@ export interface MemoryStore {
 
 // Persistence interface (can be implemented by Redis/Postgres adapters in the future)
 export interface IPersistenceAdapter {
-  initializeSession(sessionId: string): Promise<void>;
+  initializeSession(sessionId: string, userId?: string): Promise<void>;
   store(sessionId: string, key: string, value: any): Promise<void>;
   retrieve(sessionId: string, key: string): Promise<any>;
   getAll(sessionId: string): Promise<Record<string, any>>;
@@ -26,6 +26,7 @@ export interface IPersistenceAdapter {
   exists(sessionId: string): Promise<boolean>;
   pushContext(sessionId: string, agentName: string, context: Record<string, any>): Promise<void>;
   getExecutionHistory(sessionId: string): Promise<any[]>;
+  getAllUserSessions(userId: string): Promise<any[]>;
 }
 
 // In-memory adapter (default for development)
@@ -33,7 +34,7 @@ class InMemoryAdapter implements IPersistenceAdapter {
   private stores: Map<string, MemoryStore> = new Map();
   private logger = Logger.getLogger('MemoryInMemoryAdapter');
 
-  async initializeSession(sessionId: string): Promise<void> {
+  async initializeSession(sessionId: string, userId?: string): Promise<void> {
     if (!this.stores.has(sessionId)) {
       this.stores.set(sessionId, {
         sessionId,
@@ -92,6 +93,12 @@ class InMemoryAdapter implements IPersistenceAdapter {
   async getExecutionHistory(sessionId: string): Promise<any[]> {
     return (await this.retrieve(sessionId, 'executionHistory')) || [];
   }
+
+  async getAllUserSessions(userId: string): Promise<any[]> {
+    // In-memory adapter doesn't support filtering by user
+    // Return empty array - this is for development only
+    return [];
+  }
 }
 
 export class MemoryService {
@@ -100,14 +107,16 @@ export class MemoryService {
   private logger = Logger.getLogger('MemoryService');
 
   private constructor() {
-    // By default, use in-memory adapter. This can be swapped for Redis/Postgres adapters later.
-    // Choose persistence mode from config (memory | redis | postgres | file)
-    const mode = (config && (config as any).persistence?.mode) || 'memory';
+    // By default, use Supabase or other configured DB adapters. File adapter is only for development.
+    // Choose persistence mode from config (memory | redis | postgres | supabase)
+    const mode = (config && (config as any).persistence?.mode) || 'supabase';
     this.logger.info(`Initializing MemoryService with mode: ${mode}`);
 
     if (mode === 'redis') {
       // If Redis adapter is available, use it
-      this.storage = new RedisAdapter((config as any).persistence?.redisHost || 'localhost', (config as any).persistence?.redisPort || 6379);
+      // Cast to IPersistenceAdapter to satisfy adapter interface when specific adapter
+      // implementations don't yet implement all methods (e.g., getAllUserSessions).
+      this.storage = new RedisAdapter((config as any).persistence?.redisHost || 'localhost', (config as any).persistence?.redisPort || 6379) as unknown as IPersistenceAdapter;
     } else if (mode === 'postgres') {
       this.storage = new PostgresAdapter((config as any).persistence);
     } else if (mode === 'supabase') {
@@ -126,7 +135,7 @@ export class MemoryService {
     return MemoryService.instance;
   }
 
-  async initializeSession(sessionId: string): Promise<void> {
+  async initializeSession(sessionId: string, userId?: string): Promise<void> {
     await this.storage.initializeSession(sessionId);
   }
 
@@ -156,5 +165,9 @@ export class MemoryService {
 
   async getExecutionHistory(sessionId: string): Promise<any[]> {
     return await this.storage.getExecutionHistory(sessionId);
+  }
+
+  async getAllUserSessions(userId: string): Promise<any[]> {
+    return await this.storage.getAllUserSessions(userId);
   }
 }
