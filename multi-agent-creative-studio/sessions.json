@@ -1,0 +1,312 @@
+{
+  "session_5dd71ca7-a760-494f-81d5-61e4b3ee1d7a": {
+    "sessionId": "session_5dd71ca7-a760-494f-81d5-61e4b3ee1d7a",
+    "data": {
+      "sessionData": {
+        "id": "session_5dd71ca7-a760-494f-81d5-61e4b3ee1d7a",
+        "userId": "KJPsAB3ZrNW41cQXSMLjXRnACCo2",
+        "title": "food sustainable delivery startup...",
+        "description": "food sustainable delivery startup",
+        "status": "active",
+        "createdAt": "2025-12-21T02:50:56.837Z",
+        "updatedAt": "2025-12-21T02:50:56.837Z",
+        "progress": 0,
+        "currentAgent": "waiting",
+        "metadata": {
+          "useCase": "startup",
+          "explainabilityMode": true
+        }
+      }
+    },
+    "createdAt": "2025-12-21T02:50:56.838Z",
+    "updatedAt": "2025-12-21T02:50:56.843Z"
+  },
+  "session_35d594b3-8436-44d4-ae57-ec28d58d597c": {
+    "sessionId": "session_35d594b3-8436-44d4-ae57-ec28d58d597c",
+    "data": {
+      "sessionData": {
+        "id": "session_35d594b3-8436-44d4-ae57-ec28d58d597c",
+        "userId": "KJPsAB3ZrNW41cQXSMLjXRnACCo2",
+        "title": "sustainable food startup...",
+        "description": "sustainable food startup",
+        "status": "active",
+        "createdAt": "2025-12-21T02:53:29.848Z",
+        "updatedAt": "2025-12-21T02:53:29.848Z",
+        "progress": 0,
+        "currentAgent": "waiting",
+        "metadata": {
+          "useCase": "startup",
+          "explainabilityMode": true
+        }
+      }
+    },
+    "createdAt": "2025-12-21T02:53:29.849Z",
+    "updatedAt": "2025-12-21T02:53:29.857Z"
+  },
+  "session_554487e6-fb77-4709-84e8-728b98c82592": {
+    "sessionId": "session_554487e6-fb77-4709-84e8-728b98c82592",
+    "data": {
+      "sessionData": {
+        "id": "session_554487e6-fb77-4709-84e8-728b98c82592",
+        "userId": "KJPsAB3ZrNW41cQXSMLjXRnACCo2",
+        "title": "sustinable food delivery...",
+        "description": "sustinable food delivery",
+        "status": "active",
+        "createdAt": "2025-12-21T03:07:24.192Z",
+        "updatedAt": "2025-12-21T03:07:24.192Z",
+        "progress": 0,
+        "currentAgent": "waiting",
+        "metadata": {
+          "useCase": "startup",
+          "explainabilityMode": true
+        }
+      },
+      "executionHistory": [
+        {
+          "agent": "Idea Generator",
+          "context": {
+            "output": {
+              "text": "Here's a creative idea: A revolutionary approach to You are a visionary creative ideator specializing ...",
+              "metadata": {
+                "model": "gemini-3-pro-preview",
+                "provider": "mock",
+                "tokensUsed": 577
+              }
+            },
+            "reasoning": "Generated using mock AI service",
+            "template": "creative"
+          },
+          "timestamp": "2025-12-21T03:07:25.161Z"
+        },
+        {
+          "agent": "Critic",
+          "context": {
+            "output": {
+              "text": "Here's a creative idea: A revolutionary approach to You are a thoughtful, constructive critic with dee...",
+              "metadata": {
+                "model": "gemini-3-pro-preview",
+                "provider": "mock",
+                "tokensUsed": 210
+              }
+            },
+            "reasoning": "Generated using mock AI service",
+            "template": "thorough"
+          },
+          "timestamp": "2025-12-21T03:07:25.509Z"
+        },
+        {
+          "agent": "Refiner",
+          "context": {
+            "output": {
+              "text": "Here's a creative idea: A revolutionary approach to You are an expert refinement specialist. Your goal...",
+              "metadata": {
+                "model": "gemini-3-pro-preview",
+                "provider": "mock",
+                "tokensUsed": 260
+              }
+            },
+            "reasoning": "Generated using mock AI service",
+            "template": "improvement"
+          },
+          "timestamp": "2025-12-21T03:07:26.332Z"
+        },
+        {
+          "agent": "Refiner",
+          "context": {
+            "output": {
+              "text": "Here's a creative idea: A revolutionary approach to You are an expert refinement specialist. Your goal...",
+              "metadata": {
+                "model": "gemini-3-pro-preview",
+                "provider": "mock",
+                "tokensUsed": 230
+              }
+            },
+            "reasoning": "Generated using mock AI service",
+            "template": "improvement"
+          },
+          "timestamp": "2025-12-21T03:07:26.548Z"
+        },
+        {
+          "agent": "Refiner",
+          "context": {
+            "output": {
+              "text": "Here's a creative idea: A revolutionary approach to You are an expert refinement specialist. Your goal...",
+              "metadata": {
+                "model": "gemini-3-pro-preview",
+                "provider": "mock",
+                "tokensUsed": 501
+              }
+            },
+            "reasoning": "Generated using mock AI service",
+            "template": "improvement"
+          },
+          "timestamp": "2025-12-21T03:07:26.844Z"
+        },
+        {
+          "agent": "Presenter",
+          "context": {
+            "output": {
+              "text": "Here's a creative idea: A revolutionary approach to You are a presentation design expert who structure...",
+              "metadata": {
+                "model": "gemini-3-pro-preview",
+                "provider": "mock",
+                "tokensUsed": 556
+              }
+            },
+            "reasoning": "Generated using mock AI service",
+            "template": "detailed"
+          },
+          "timestamp": "2025-12-21T03:07:27.061Z"
+        }
+      ],
+      "initialIdea": {
+        "id": "output_f5c01a13-8352-4c02-84ff-c3028cc2a296",
+        "sessionId": "session_554487e6-fb77-4709-84e8-728b98c82592",
+        "agentName": "Idea Generator",
+        "agentType": "idea",
+        "input": {
+          "topic": "sustinable food delivery",
+          "requirements": [],
+          "constraints": []
+        },
+        "output": {
+          "text": "Here's a creative idea: A revolutionary approach to You are a visionary creative ideator specializing ...",
+          "metadata": {
+            "model": "gemini-3-pro-preview",
+            "provider": "mock",
+            "tokensUsed": 577
+          }
+        },
+        "reasoning": "Generated using mock AI service",
+        "timestamp": "2025-12-21T03:07:25.161Z",
+        "duration": 553,
+        "success": true
+      },
+      "criticisms": [
+        {
+          "id": "output_357e055a-202b-4cbc-b9f1-6a24e6b84329",
+          "sessionId": "session_554487e6-fb77-4709-84e8-728b98c82592",
+          "agentName": "Critic",
+          "agentType": "critic",
+          "input": {
+            "idea": "Here's a creative idea: A revolutionary approach to You are a visionary creative ideator specializing ...",
+            "focusAreas": [
+              "feasibility",
+              "relevance",
+              "originality"
+            ],
+            "criteria": []
+          },
+          "output": {
+            "text": "Here's a creative idea: A revolutionary approach to You are a thoughtful, constructive critic with dee...",
+            "metadata": {
+              "model": "gemini-3-pro-preview",
+              "provider": "mock",
+              "tokensUsed": 210
+            }
+          },
+          "reasoning": "Generated using mock AI service",
+          "timestamp": "2025-12-21T03:07:25.509Z",
+          "duration": 255,
+          "success": true
+        }
+      ],
+      "refinementIterations": [
+        {
+          "id": "output_26e855f4-ec13-4097-a5d7-07576d27bdd1",
+          "sessionId": "session_554487e6-fb77-4709-84e8-728b98c82592",
+          "agentName": "Refiner",
+          "agentType": "refiner",
+          "input": {
+            "originalIdea": "Here's a creative idea: A revolutionary approach to You are an expert refinement specialist. Your goal...",
+            "feedback": "Iteration 1: Further refine and improve this idea.",
+            "improvementFocus": []
+          },
+          "output": {
+            "text": "Here's a creative idea: A revolutionary approach to You are an expert refinement specialist. Your goal...",
+            "metadata": {
+              "model": "gemini-3-pro-preview",
+              "provider": "mock",
+              "tokensUsed": 230
+            }
+          },
+          "reasoning": "Generated using mock AI service",
+          "timestamp": "2025-12-21T03:07:26.548Z",
+          "duration": 215,
+          "success": true
+        },
+        {
+          "id": "output_d5d77bd6-b444-4fbf-a285-56fdc7dd206a",
+          "sessionId": "session_554487e6-fb77-4709-84e8-728b98c82592",
+          "agentName": "Refiner",
+          "agentType": "refiner",
+          "input": {
+            "originalIdea": "Here's a creative idea: A revolutionary approach to You are an expert refinement specialist. Your goal...",
+            "feedback": "Iteration 2: Further refine and improve this idea.",
+            "improvementFocus": []
+          },
+          "output": {
+            "text": "Here's a creative idea: A revolutionary approach to You are an expert refinement specialist. Your goal...",
+            "metadata": {
+              "model": "gemini-3-pro-preview",
+              "provider": "mock",
+              "tokensUsed": 501
+            }
+          },
+          "reasoning": "Generated using mock AI service",
+          "timestamp": "2025-12-21T03:07:26.843Z",
+          "duration": 295,
+          "success": true
+        }
+      ],
+      "refinedIdea": {
+        "id": "output_d5d77bd6-b444-4fbf-a285-56fdc7dd206a",
+        "sessionId": "session_554487e6-fb77-4709-84e8-728b98c82592",
+        "agentName": "Refiner",
+        "agentType": "refiner",
+        "input": {
+          "originalIdea": "Here's a creative idea: A revolutionary approach to You are an expert refinement specialist. Your goal...",
+          "feedback": "Iteration 2: Further refine and improve this idea.",
+          "improvementFocus": []
+        },
+        "output": {
+          "text": "Here's a creative idea: A revolutionary approach to You are an expert refinement specialist. Your goal...",
+          "metadata": {
+            "model": "gemini-3-pro-preview",
+            "provider": "mock",
+            "tokensUsed": 501
+          }
+        },
+        "reasoning": "Generated using mock AI service",
+        "timestamp": "2025-12-21T03:07:26.843Z",
+        "duration": 295,
+        "success": true
+      },
+      "presentation": {
+        "id": "output_1c051c19-49b6-4a0b-8711-71c4327495d6",
+        "sessionId": "session_554487e6-fb77-4709-84e8-728b98c82592",
+        "agentName": "Presenter",
+        "agentType": "presenter",
+        "input": {
+          "idea": "Here's a creative idea: A revolutionary approach to You are an expert refinement specialist. Your goal...",
+          "targetAudience": "general",
+          "format": "comprehensive"
+        },
+        "output": {
+          "text": "Here's a creative idea: A revolutionary approach to You are a presentation design expert who structure...",
+          "metadata": {
+            "model": "gemini-3-pro-preview",
+            "provider": "mock",
+            "tokensUsed": 556
+          }
+        },
+        "reasoning": "Generated using mock AI service",
+        "timestamp": "2025-12-21T03:07:27.061Z",
+        "duration": 213,
+        "success": true
+      }
+    },
+    "createdAt": "2025-12-21T03:07:24.192Z",
+    "updatedAt": "2025-12-21T03:07:27.062Z"
+  }
+}

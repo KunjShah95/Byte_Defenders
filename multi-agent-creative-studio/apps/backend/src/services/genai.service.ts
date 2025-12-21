@@ -73,9 +73,21 @@ export class GenAIService {
       } else {
         return await this.generateWithMock(options);
       }
-    } catch (error) {
-      this.logger.error('AI generation failed', error);
-      throw new Error(`AI generation failed: ${error}`);
+    } catch (error: any) {
+      this.logger.error('AI generation failed', { 
+        error: error.message,
+        stack: error.stack,
+        provider,
+        fallbackEnabled: config.genai.fallbackToMock
+      });
+      
+      // Fallback to mock if enabled and we haven't already tried mock
+      if (config.genai.fallbackToMock && provider !== 'mock') {
+        this.logger.warn('Falling back to mock AI provider');
+        return await this.generateWithMock(options);
+      }
+      
+      throw new Error(`AI generation failed: ${error.message}`);
     }
   }
 
@@ -119,8 +131,14 @@ export class GenAIService {
           tokensUsed: ((response.promptFeedback as any)?.tokenCount) || 0,
         },
       };
-    } catch (error) {
-      this.logger.error('Google API call failed', error);
+    } catch (error: any) {
+      this.logger.error('Google API call failed', { 
+        message: error.message,
+        status: error.status,
+        statusText: error.statusText,
+        googleKey: this.googleKey ? '***set***' : 'not set',
+        model: options.model || this.model
+      });
       throw error;
     }
   }
