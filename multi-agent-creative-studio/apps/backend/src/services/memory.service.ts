@@ -150,7 +150,7 @@ export class MemoryService {
     return await this.storage.exists(sessionId);
   }
 
-  async pushContext(sessionId: string, agentName: string, context: Record<string, any>): Promise<void> {
+  async pushContext(sessionId: string, agentName: string, context: Record<string, any>, agentType: string): Promise<void> {
     await this.storage.pushContext(sessionId, agentName, context);
   }
 
