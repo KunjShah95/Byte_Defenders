@@ -22,8 +22,7 @@
     "strictFunctionTypes": true,
     "strictBindCallApply": true,
     "strictPropertyInitialization": true,
-    "noImplicitThis": true,
-    "ignoreDeprecations": "6.0"
+    "noImplicitThis": true
   },
   "include": [
     "apps/backend/src/**/*"

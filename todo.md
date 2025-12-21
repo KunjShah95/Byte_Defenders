@@ -1,24 +1,26 @@
-# Task: Fix TypeScript baseUrl Deprecation Error
+# Fix ESLint Error in Session Service
 
-## Objective
+## Task: Fix the ESLint error in `frontend/src/services/session.service.ts`
 
-Fix the TypeScript deprecation error for 'baseUrl' option in tsconfig.json
+**Problem**: ESLint Error on line 151 - "Unexpected any. Specify a different type."
 
-## Steps
+## Checklist
 
-- [x] Read current tsconfig.json to understand the issue
-- [x] Identify the root cause of the deprecation warning
-- [x] Fix the tsconfig.json file
-- [ ] Verify the fix resolves the error
+- [x] Analyze the current `getResult` method implementation
+- [x] Replace `Promise<any>` return type with proper `SessionResult` type
+- [x] Verify the import of `SessionResult` type exists
+- [x] Test the fix to ensure it compiles without ESLint errors
+- [x] Confirm the change maintains functionality
 
-## Current Problem
+## Solution
 
-- TypeScript Error: Option 'baseUrl' is deprecated and will stop functioning in TypeScript 7.0
-- The baseUrl option is not needed since there are no paths configured
-- Solution: Remove the baseUrl line entirely
+✅ **FIXED**: Updated the import statement to include `SessionResult` and changed the `getResult` method return type from `Promise<any>` to `Promise<SessionResult>`.
 
-## Solution Applied
+## Changes Made
 
-- Successfully removed `"baseUrl": "."` from tsconfig.json
-- The `ignoreDeprecations: "6.0"` setting remains for other potential deprecations
-- All other compiler options preserved
+1. Updated import: `import { Session, SessionInput, SessionResult } from '@/types/session.types';`
+2. Changed method signature: `async getResult(id: string): Promise<SessionResult>`
+
+## Result
+
+The ESLint error has been successfully resolved. The `getResult` method now returns a properly typed `SessionResult` instead of using the generic `any` type, which improves type safety and eliminates the ESLint warning.
