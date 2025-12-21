@@ -30,11 +30,21 @@ export async function getExplainability(req: Request, res: Response): Promise<vo
     }
 
     // Build agent execution traces
+    const normalizeAgentType = (agentName?: string, storedType?: string): string => {
+      if (storedType) return storedType;
+      const name = (agentName || '').toLowerCase();
+      if (name.includes('idea')) return 'idea';
+      if (name.includes('critic')) return 'critic';
+      if (name.includes('refiner')) return 'refiner';
+      if (name.includes('presenter')) return 'presenter';
+      return name || 'unknown';
+    };
+
     const executionHistory = (allMemory.executionHistory || []) as any[];
     const agentExecutions: AgentExecutionTrace[] = executionHistory.map((entry) => ({
       agentName: entry.agent,
-      agentType: entry.agent.toLowerCase(),
-      input: entry.context?.originalIdea || entry.context?.idea || entry.context?.topic || {},
+      agentType: normalizeAgentType(entry.agent, entry.agentType),
+      input: entry.context?.originalIdea || entry.context?.idea || entry.context?.topic || entry.context?.input || {},
       output: entry.context?.output || {},
       reasoning: entry.context?.reasoning || 'N/A',
       duration: entry.context?.duration || 0,

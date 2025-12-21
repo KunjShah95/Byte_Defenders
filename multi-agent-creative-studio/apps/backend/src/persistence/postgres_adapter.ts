@@ -79,10 +79,15 @@ export class PostgresAdapter implements IPersistenceAdapter {
     return (res.rowCount ?? 0) > 0;
   }
 
-  async pushContext(sessionId: string, agentName: string, context: Record<string, any>): Promise<void> {
+  async pushContext(
+    sessionId: string,
+    agentName: string,
+    context: Record<string, any>,
+    agentType?: string,
+  ): Promise<void> {
     const existing = await this.retrieve(sessionId, 'executionHistory');
     const arr = Array.isArray(existing) ? existing : [];
-    arr.push({ agent: agentName, context, timestamp: new Date() });
+    arr.push({ agent: agentName, agentType, context, timestamp: new Date() });
     await this.store(sessionId, 'executionHistory', arr);
   }
 

@@ -148,11 +148,16 @@ export class AgentRunnerService {
       };
 
       // Store in memory
-      this.memoryService.pushContext(request.sessionId, agentConfig.name, {
-        output: agentOutput.output,
-        reasoning: agentOutput.reasoning,
-        template: templateName,
-      });
+      this.memoryService.pushContext(
+        request.sessionId,
+        agentConfig.name,
+        {
+          output: agentOutput.output,
+          reasoning: agentOutput.reasoning,
+          template: templateName,
+        },
+        request.agentType,
+      );
 
       // Publish event
       await this.eventBus.publish(`agent:${request.agentType}:completed`, agentOutput);
