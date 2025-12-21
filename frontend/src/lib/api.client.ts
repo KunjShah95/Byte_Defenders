@@ -1,8 +1,12 @@
 import axios from 'axios';
 import { auth } from './firebase';
 
+// In dev, Vite can proxy `/api` to the backend.
+// In prod/preview, the proxy is not present, so prefer an explicit base URL.
+const API_BASE: string = (import.meta as any).env?.VITE_API_BASE_URL || '/api/v1';
+
 const apiClient = axios.create({
-    baseURL: '/api/v1',
+    baseURL: API_BASE,
     timeout: 30000,
 });
 

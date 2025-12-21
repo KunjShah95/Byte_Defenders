@@ -18,8 +18,13 @@ export const config = {
     openaiKey: process.env.OPENAI_API_KEY || '',
     googleKey: process.env.GOOGLE_API_KEY || '',
     baseURL: process.env.GENAI_BASE_URL || 'https://api.openai.com/v1',
-    model: process.env.GENAI_MODEL || 'gemini-3-pro-preview',
+    model: process.env.GENAI_MODEL || 'gemini-1.5-flash',
     provider: process.env.GENAI_PROVIDER || 'google', // openai | google | mock
+    // In development, default to falling back to the mock provider if the
+    // configured upstream provider is missing keys or errors.
+    fallbackToMock:
+      process.env.GENAI_FALLBACK_TO_MOCK === 'true' ||
+      (process.env.NODE_ENV || 'development') === 'development',
   },
 
   // Moti (Backend)
@@ -60,14 +65,16 @@ export const config = {
     postgresUser: process.env.POSTGRES_USER || 'postgres',
     postgresPassword: process.env.POSTGRES_PASSWORD || 'postgres',
     supabaseUrl: process.env.SUPABASE_URL || '',
-    supabaseKey: process.env.SUPABASE_ANON_KEY || '',
+    supabaseKey: process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || '',
   },
 
   // Firebase Admin for Auth
   firebase: {
     projectId: process.env.FIREBASE_PROJECT_ID || '',
     clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
-    privateKey: (process.env.FIREBASE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+    privateKey: (process.env.FIREBASE_PRIVATE_KEY || '')
+      .replace(/^"|"$/g, '')
+      .replace(/\\n/g, '\n'),
   },
 };
 

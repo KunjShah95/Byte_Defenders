@@ -70,6 +70,18 @@ app.get('/health', (req: Request, res: Response) => {
   });
 });
 
+// Welcome route
+app.get('/', (req: Request, res: Response) => {
+  res.json({
+    message: 'Welcome to the Byte Defenders API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/health',
+      sessions: '/api/v1/sessions'
+    }
+  });
+});
+
 // API v1 Routes
 
 // Session Management

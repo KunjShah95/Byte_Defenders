@@ -56,7 +56,7 @@ npm run dev
 You should see:
 ```
 Backend Starting...
-CORS Config: http://localhost:8080,http://localhost:5173,http://localhost:3000
+CORS Config: http://localhost:8080,http://localhost:5173,http://localhost:5175,http://localhost:3000
 Firebase Admin initialized successfully from service account file
 Server started successfully { port: 3000, env: 'development' }
 ```
@@ -80,8 +80,8 @@ Expected response:
 
 ### Step 6: Test Frontend
 
-1. Make sure frontend is running on http://localhost:8080
-2. Go to http://localhost:8080/create
+1. Make sure frontend is running on http://localhost:5175 (default Vite port)
+2. Go to http://localhost:5175/create
 3. Enter a prompt and click "Generate with AI Agents"
 4. You should see the session being created and processed
 
@@ -155,22 +155,22 @@ npm run dev
    npm run dev
    ```
 
-3. **Access the app:** http://localhost:8080
+3. **Access the app:** http://localhost:5175 (or check the port shown in the terminal)
 
 ---
 
 ## 📊 Architecture Overview
 
 ```
-Frontend (Port 8080)
-    ↓ HTTP Request to /api/*
-Vite Proxy
-    ↓ Forwards to http://localhost:3000/api/*
-Backend (Port 3000)
+Frontend (Port 5175 - Vite default)
+    ↓ HTTP Request to /api/v1/*
+    Vite Proxy (/api → http://localhost:3000/api)
+    ↓ Forwards to http://localhost:3000/api/v1/*
+    Backend (Port 3000)
     ↓ Verifies Firebase Token
-Firebase Admin SDK
+    Firebase Admin SDK
     ↓ Calls AI API
-Google Gemini API
+    Google Gemini API
 ```
 
 ---

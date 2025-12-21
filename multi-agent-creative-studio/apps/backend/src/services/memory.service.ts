@@ -7,6 +7,7 @@ import { config } from '../config';
 import { RedisAdapter } from '../persistence/redis_adapter';
 import { PostgresAdapter } from '../persistence/postgres_adapter';
 import { SupabaseAdapter } from '../persistence/supabase_adapter';
+import { FileAdapter } from '../persistence/file_adapter';
 
 export interface MemoryStore {
   sessionId: string;
@@ -100,8 +101,10 @@ export class MemoryService {
 
   private constructor() {
     // By default, use in-memory adapter. This can be swapped for Redis/Postgres adapters later.
-    // Choose persistence mode from config (memory | redis | postgres)
+    // Choose persistence mode from config (memory | redis | postgres | file)
     const mode = (config && (config as any).persistence?.mode) || 'memory';
+    this.logger.info(`Initializing MemoryService with mode: ${mode}`);
+
     if (mode === 'redis') {
       // If Redis adapter is available, use it
       this.storage = new RedisAdapter((config as any).persistence?.redisHost || 'localhost', (config as any).persistence?.redisPort || 6379);
@@ -109,6 +112,8 @@ export class MemoryService {
       this.storage = new PostgresAdapter((config as any).persistence);
     } else if (mode === 'supabase') {
       this.storage = new SupabaseAdapter();
+    } else if (mode === 'file') {
+      this.storage = new FileAdapter();
     } else {
       this.storage = new InMemoryAdapter();
     }

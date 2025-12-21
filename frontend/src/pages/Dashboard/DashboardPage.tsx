@@ -30,15 +30,17 @@ export default function DashboardPage() {
   }
 
   if (error) {
+    const is404 = error.includes('404') || error.toLowerCase().includes('not found');
+
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
         <div className="p-4 rounded-lg bg-destructive/10 text-destructive border border-destructive/20 max-w-lg text-center">
-          <h3 className="font-semibold mb-2">Error Occurred</h3>
-          <p>{error}</p>
+          <h3 className="font-semibold mb-2">{is404 ? 'Session Expired / Not Found' : 'Error Occurred'}</h3>
+          <p>{is404 ? 'The session data is missing. This occurs because the backend uses in-memory storage, which is cleared on every restart. Please start a new session.' : error}</p>
         </div>
         <div className="flex gap-4">
-          <Button onClick={() => sessionId && runSession(sessionId)} variant="primary">Retry</Button>
-          <Button onClick={() => navigate('/')} variant="outline">Go Home</Button>
+          {!is404 && <Button onClick={() => sessionId && runSession(sessionId)} variant="primary">Retry</Button>}
+          <Button onClick={() => navigate('/')} variant="outline">Start New Session</Button>
         </div>
       </div>
     );
