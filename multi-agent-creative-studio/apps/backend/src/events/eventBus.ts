@@ -47,8 +47,12 @@ export class EventBus {
    * Publish an event
    */
   async publish(eventType: string, data: any): Promise<void> {
+    // Dispatch to exact event type listeners
     const callbacks = this.listeners.get(eventType) || [];
-    await Promise.all(callbacks.map((callback) => Promise.resolve(callback(data))));
+    // Also dispatch to wildcard '*' listeners (used by SSE endpoint)
+    const wildcardCallbacks = this.listeners.get('*') || [];
+    const allCallbacks = [...callbacks, ...wildcardCallbacks];
+    await Promise.all(allCallbacks.map((callback) => Promise.resolve(callback(data))));
   }
 
   /**

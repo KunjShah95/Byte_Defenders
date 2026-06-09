@@ -7,3 +7,5 @@ export { RefinerAgent } from './refiner.agent';
 export { PresenterAgent } from './presenter.agent';
 export { ResearcherAgent } from './researcher.agent';
 export { CoderAgent } from './coder.agent';
+export { StrategistAgent } from './strategist.agent';
+export { QualityAssuranceAgent } from './quality-assurance.agent';

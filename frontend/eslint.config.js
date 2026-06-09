@@ -23,4 +23,11 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   },
+  {
+    // shadcn/ui components commonly export both components and utility functions/constants
+    files: ["**/components/ui/**", "**/store/**"],
+    rules: {
+      "react-refresh/only-export-components": "off",
+    },
+  },
 );

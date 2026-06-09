@@ -5,9 +5,76 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+/**
+ * Validates that required environment variables are set.
+ * Logs warnings for missing non-critical vars and throws for critical ones.
+ */
+/** Skip validation when running in test mode — test fixtures provide mocks. */
+const IS_TEST = process.env.NODE_ENV === 'test' || process.env.VITEST === 'true';
+
+function validateEnv(): void {
+  if (IS_TEST) return;
+
+  const missing: string[] = [];
+  const warnings: string[] = [];
+
+  // Critical: without these the app cannot function
+  if (!process.env.GOOGLE_API_KEY && !process.env.OPENAI_API_KEY) {
+    missing.push('GOOGLE_API_KEY or OPENAI_API_KEY (at least one AI provider key required)');
+  }
+
+  // Firebase auth is required for API authentication
+  if (!process.env.FIREBASE_PROJECT_ID) warnings.push('FIREBASE_PROJECT_ID (API auth will fail without it)');
+  if (!process.env.FIREBASE_CLIENT_EMAIL) warnings.push('FIREBASE_CLIENT_EMAIL (API auth will fail without it)');
+  if (!process.env.FIREBASE_PRIVATE_KEY) warnings.push('FIREBASE_PRIVATE_KEY (API auth will fail without it)');
+
+  // Supabase is needed if persistence mode is set to supabase
+  if (process.env.PERSISTENCE_MODE === 'supabase') {
+    if (!process.env.SUPABASE_URL) missing.push('SUPABASE_URL (required when PERSISTENCE_MODE=supabase)');
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
+      warnings.push('SUPABASE_SERVICE_ROLE_KEY (falling back to ANON_KEY - RLS policies may cause issues)');
+    }
+  }
+
+  // Non-critical warnings
+  if (!process.env.SUPABASE_SERVICE_ROLE_KEY && process.env.PERSISTENCE_MODE !== 'memory') {
+    warnings.push('SUPABASE_SERVICE_ROLE_KEY not set — using ANON_KEY may cause RLS policy violations');
+  }
+
+  if (missing.length > 0) {
+    console.error('\n❌ Missing required environment variables:');
+    missing.forEach(v => console.error(`   - ${v}`));
+    console.error('\n   Copy .env.example to .env and fill in the values.');
+    console.error('   See: multi-agent-creative-studio/.env.example\n');
+    process.exit(1);
+  }
+
+  if (warnings.length > 0) {
+    console.warn('\n⚠️  Missing optional environment variables:');
+    warnings.forEach(v => console.warn(`   - ${v}`));
+    console.warn('');
+  }
+}
+
+// Run validation immediately unless in test mode
+validateEnv();
+
+export interface PersistenceConfig {
+  mode: string;
+  redisHost: string;
+  redisPort: number;
+  postgresHost: string;
+  postgresPort: number;
+  postgresDb: string;
+  postgresUser: string;
+  postgresPassword: string;
+  supabaseUrl: string;
+  supabaseKey: string;
+}
+
 export const config = {
   // Server
-  port: parseInt(process.env.PORT || '3001', 10),
+  port: parseInt(process.env.PORT || '3000', 10),
   nodeEnv: process.env.NODE_ENV || 'development',
 
   // Logging
@@ -18,7 +85,7 @@ export const config = {
     openaiKey: process.env.OPENAI_API_KEY || '',
     googleKey: process.env.GOOGLE_API_KEY || '',
     baseURL: process.env.GENAI_BASE_URL || 'https://api.openai.com/v1',
-    model: process.env.GENAI_MODEL || 'gemini-3.0-pro-preview',
+    model: process.env.GENAI_MODEL || 'gemini-2.0-flash-exp',
     provider: process.env.GENAI_PROVIDER || 'google', // openai | google | mock
     // In development, default to falling back to the mock provider if the
     // configured upstream provider is missing keys or errors.

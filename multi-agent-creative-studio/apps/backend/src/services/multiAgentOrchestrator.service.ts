@@ -79,13 +79,14 @@ export class MultiAgentOrchestrator {
     }
 
     /**
-     * Run agents in parallel with proper orchestration
+     * Run agents in parallel with proper orchestration and concurrency control
      */
     async runParallel(sessionId: string, tasks: AgentTask[], config: OrchestrationConfig): Promise<AgentOutput[]> {
         this.logger.info(`Running ${tasks.length} agents in parallel`, { sessionId });
         
         // Initialize session tracking
-        this.activeSessions.set(sessionId, new Set(tasks.map(t => t.id)));
+        const agentIds = new Set(tasks.map(t => t.id));
+        this.activeSessions.set(sessionId, agentIds);
 
         // Update all agents to pending status
         for (const task of tasks) {
@@ -93,47 +94,54 @@ export class MultiAgentOrchestrator {
         }
 
         const parallelLimit = config.parallelLimit || tasks.length;
-        const executionPromises: Promise<AgentOutput>[] = [];
+        const outputs: AgentOutput[] = [];
 
-        // Execute tasks in batches to respect parallel limit
+        // Execute tasks in batches with true concurrency control
+        // Each batch must complete before the next starts
         for (let i = 0; i < tasks.length; i += parallelLimit) {
             const batch = tasks.slice(i, i + parallelLimit);
             
             const batchPromises = batch.map(task => 
                 this.executeAgentWithRetry(sessionId, task, config)
+                    .then(result => {
+                        // Mark task as completed in session tracking
+                        agentIds.delete(task.id);
+                        return result;
+                    })
+                    .catch(error => {
+                        agentIds.delete(task.id);
+                        throw error;
+                    })
             );
             
-            executionPromises.push(...batchPromises);
-        }
-
-        const results = await Promise.allSettled(executionPromises);
-        
-        // Process results
-        const outputs: AgentOutput[] = [];
-        for (let i = 0; i < results.length; i++) {
-            const result = results[i];
-            const task = tasks[i];
+            // Actually await each batch to respect parallelLimit
+            const batchResults = await Promise.allSettled(batchPromises);
             
-            if (result.status === 'fulfilled') {
-                outputs.push(result.value);
-                await this.updateStatus(sessionId, task.id, 'completed', 100, 'Completed successfully');
-            } else {
-                this.logger.error(`Agent ${task.id} failed`, result.reason);
-                await this.updateStatus(sessionId, task.id, 'failed', 0, undefined, String(result.reason));
+            for (let j = 0; j < batchResults.length; j++) {
+                const result = batchResults[j];
+                const task = batch[j];
                 
-                // Return error output instead of throwing
-                outputs.push({
-                    id: task.id,
-                    sessionId,
-                    agentName: task.name || task.agentType,
-                    agentType: task.agentType,
-                    input: task.input,
-                    output: {},
-                    timestamp: new Date(),
-                    duration: 0,
-                    success: false,
-                    error: String(result.reason)
-                } as AgentOutput);
+                if (result.status === 'fulfilled') {
+                    outputs.push(result.value);
+                    await this.updateStatus(sessionId, task.id, 'completed', 100, 'Completed successfully');
+                } else {
+                    this.logger.error(`Agent ${task.id} failed`, result.reason);
+                    await this.updateStatus(sessionId, task.id, 'failed', 0, undefined, String(result.reason));
+                    
+                    // Return error output instead of throwing
+                    outputs.push({
+                        id: task.id,
+                        sessionId,
+                        agentName: task.name || task.agentType,
+                        agentType: task.agentType,
+                        input: task.input,
+                        output: {},
+                        timestamp: new Date(),
+                        duration: 0,
+                        success: false,
+                        error: String(result.reason)
+                    } as AgentOutput);
+                }
             }
         }
 
@@ -197,12 +205,14 @@ export class MultiAgentOrchestrator {
 
     /**
      * Run agents in sequence with dependency management
+     * Each task is removed from activeSessions individually so waitForDependencies works correctly
      */
     async runSequential(sessionId: string, tasks: AgentTask[], initialContext: Record<string, any> = {}): Promise<AgentOutput[]> {
         this.logger.info(`Running ${tasks.length} agents in sequence`, { sessionId });
 
-        // Initialize session tracking
-        this.activeSessions.set(sessionId, new Set(tasks.map(t => t.id)));
+        // Initialize session tracking with all task IDs
+        const agentIds = new Set(tasks.map(t => t.id));
+        this.activeSessions.set(sessionId, agentIds);
 
         const results: AgentOutput[] = [];
         let currentContext = { ...initialContext };
@@ -212,15 +222,34 @@ export class MultiAgentOrchestrator {
 
         for (const task of tasks) {
             try {
-                // Wait for dependencies to complete
+                // Wait for dependencies to complete (they're removed from agentIds when done)
                 await this.waitForDependencies(sessionId, task.dependencies || []);
 
-                const output = await this.executeAgentWithRetry(sessionId, task, {
+                // Feed accumulated context into this task so agents receive previous outputs
+                const taskWithContext = {
+                    ...task,
+                    context: {
+                        ...currentContext,
+                        ...task.context,
+                    },
+                    // Auto-populate empty input fields from the previous agent's output.
+                    // This is the critical fix for pipeline data flow — agents like Critic
+                    // and Refiner receive the actual idea/feedback text instead of empty strings.
+                    input: {
+                        ...task.input,
+                        ...this.populateInputFromLastOutput(task.input, currentContext),
+                    },
+                };
+
+                const output = await this.executeAgentWithRetry(sessionId, taskWithContext, {
                     sessionId,
                     maxRetries: task.maxRetries || 3
                 });
 
                 results.push(output);
+
+                // Remove this task from active tracking so dependents know it's done
+                agentIds.delete(task.id);
 
                 // Update context with this result
                 if (output.success) {
@@ -232,9 +261,8 @@ export class MultiAgentOrchestrator {
                 }
             } catch (error) {
                 this.logger.error(`Sequential task ${task.id} failed`, error);
-                
-                // For sequential execution, we can choose to stop or continue
-                // For now, we'll stop on first failure
+                agentIds.delete(task.id);
+                // Stop on first failure for sequential pipelines
                 throw error;
             }
         }
@@ -345,6 +373,31 @@ export class MultiAgentOrchestrator {
             totalActiveAgents: Array.from(this.activeSessions.values()).reduce((sum, agents) => sum + agents.size, 0),
             uptime: process.uptime()
         };
+    }
+
+    /**
+     * Populate empty string fields in task input from the last output's text.
+     * This enables pipeline data flow — agents downstream receive the actual content
+     * from upstream agents rather than static placeholder values.
+     */
+    private populateInputFromLastOutput(
+        input: Record<string, any>,
+        context: Record<string, any>,
+    ): Record<string, any> {
+        const lastOutput = context.lastOutput as Record<string, any> | undefined;
+        if (!lastOutput?.text && !lastOutput?.output?.text) return {};
+
+        const lastText = lastOutput.text || lastOutput.output?.text || '';
+        if (!lastText) return {};
+
+        const filled: Record<string, any> = {};
+        for (const [key, val] of Object.entries(input)) {
+            // Fill empty strings with the previous agent's output text
+            if (val === '' || val === null || val === undefined) {
+                filled[key] = lastText;
+            }
+        }
+        return filled;
     }
 
     /**

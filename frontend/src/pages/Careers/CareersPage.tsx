@@ -1,231 +1,83 @@
-import React from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/common/Button';
-import { Card, CardContent } from '@/components/common/Card';
-import {
-    MapPin,
-    Briefcase,
-    Clock,
-    Heart,
-    ArrowRight,
-    CheckCircle,
-    Zap,
-    Users,
-    Globe
-} from 'lucide-react';
+import { BackgroundBeams } from '@/components/aceternity/BackgroundBeams';
+import { ArrowRight, Heart, Clock, Globe, Coffee } from 'lucide-react';
 
 const POSITIONS = [
-    {
-        id: 1,
-        title: 'Senior Full Stack Engineer',
-        department: 'Engineering',
-        location: 'Bangalore / Remote',
-        type: 'Full-time',
-        salary: '₹25L - ₹45L',
-        description: 'Build and scale our core platform using TypeScript, React, and Node.js.',
-        requirements: ['5+ years experience', 'React & Node.js', 'System design skills'],
-    },
-    {
-        id: 2,
-        title: 'ML/AI Engineer',
-        department: 'AI Research',
-        location: 'Bangalore / Remote',
-        type: 'Full-time',
-        salary: '₹30L - ₹55L',
-        description: 'Work on our multi-agent orchestration and prompt engineering systems.',
-        requirements: ['3+ years in ML', 'LLM experience', 'Python proficiency'],
-    },
-    {
-        id: 3,
-        title: 'Product Designer',
-        department: 'Design',
-        location: 'Remote',
-        type: 'Full-time',
-        salary: '₹18L - ₹35L',
-        description: 'Design beautiful, intuitive interfaces for our AI collaboration platform.',
-        requirements: ['4+ years product design', 'Figma expertise', 'Design systems'],
-    },
-    {
-        id: 4,
-        title: 'DevOps Engineer',
-        department: 'Infrastructure',
-        location: 'Bangalore / Remote',
-        type: 'Full-time',
-        salary: '₹20L - ₹40L',
-        description: 'Build and maintain our cloud infrastructure on AWS/GCP.',
-        requirements: ['Kubernetes', 'Terraform', 'CI/CD pipelines'],
-    },
+    { title: 'Full Stack Engineer', desc: 'Help us build the core platform. TypeScript, React, Node.js.', type: 'Full-time', location: 'Bangalore / Remote' },
+    { title: 'Product Designer', desc: 'Design interfaces that make complex workflows feel simple.', type: 'Full-time', location: 'Remote' },
 ];
 
-const BENEFITS = [
-    { icon: Heart, title: 'Health Insurance', description: 'Comprehensive coverage for you and family' },
-    { icon: Zap, title: 'Learning Budget', description: '₹1L annual budget for courses and conferences' },
-    { icon: Clock, title: 'Flexible Hours', description: 'Work when you\'re most productive' },
-    { icon: Globe, title: 'Remote First', description: 'Work from anywhere in India' },
-    { icon: Users, title: 'Team Retreats', description: 'Quarterly offsites to amazing destinations' },
-    { icon: Briefcase, title: 'Equity', description: 'Own a piece of what you build' },
+const perks = [
+    { icon: Heart, title: 'Health insurance', desc: 'For you and your family.' },
+    { icon: Clock, title: 'Flexible hours', desc: 'Work when you are most effective.' },
+    { icon: Globe, title: 'Remote-friendly', desc: 'Work from anywhere in India.' },
+    { icon: Coffee, title: 'Team meets', desc: 'We meet up quarterly.' },
 ];
 
 export default function CareersPage() {
     const navigate = useNavigate();
 
     return (
-        <div className="min-h-screen py-16 lg:py-24">
-            <div className="container">
+        <div className="relative min-h-screen bg-black py-16 lg:py-24">
+            <BackgroundBeams className="opacity-20" />
+            <div className="container relative z-10 mx-auto px-6 max-w-5xl">
                 {/* Hero */}
-                <div className="text-center mb-16">
-                    <span className="text-primary font-mono text-sm mb-2 block">// CAREERS</span>
-                    <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-4">
-                        Build the Future of AI<br />With Us
-                    </h1>
-                    <p className="text-lg text-muted-foreground max-w-2xl mx-auto mb-8">
-                        Join a team of passionate builders creating transparent, collaborative AI systems.
-                        We're remote-first and believe in work-life balance.
-                    </p>
-                    <div className="flex flex-wrap justify-center gap-4 text-sm">
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                            <MapPin className="h-4 w-4 text-primary" />
-                            Remote First (India)
-                        </span>
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                            <Users className="h-4 w-4 text-primary" />
-                            15+ Team Members
-                        </span>
-                        <span className="flex items-center gap-2 text-muted-foreground">
-                            <Zap className="h-4 w-4 text-primary" />
-                            Well Funded
-                        </span>
-                    </div>
-                </div>
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-16 max-w-3xl">
+                    <span className="mb-4 block text-xs font-mono uppercase tracking-[0.3em] text-primary">CAREERS</span>
+                    <h1 className="text-4xl font-bold text-white lg:text-5xl font-display">Work with <span className="text-primary">us</span>.</h1>
+                    <p className="mt-4 text-lg text-neutral-400 font-light max-w-2xl">Small team. Big problems. We are building a tool that helps people think better, and we need help.</p>
+                </motion.div>
 
                 {/* Open Positions */}
                 <div className="mb-16">
-                    <h2 className="text-2xl font-bold text-foreground mb-6">Open Positions</h2>
+                    <h2 className="text-xl font-bold text-white font-display mb-6">Open roles</h2>
                     <div className="space-y-4">
-                        {POSITIONS.map((position) => (
-                            <Card key={position.id} variant="glass" className="group hover:border-primary/30 transition-all cursor-pointer">
-                                <CardContent className="p-6">
-                                    <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-                                        <div className="flex-1">
-                                            <div className="flex items-center gap-3 mb-2">
-                                                <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors">
-                                                    {position.title}
-                                                </h3>
-                                                <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
-                                                    {position.department}
-                                                </span>
-                                            </div>
-                                            <p className="text-sm text-muted-foreground mb-3">{position.description}</p>
-                                            <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                                                <span className="flex items-center gap-1">
-                                                    <MapPin className="h-4 w-4" />
-                                                    {position.location}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Clock className="h-4 w-4" />
-                                                    {position.type}
-                                                </span>
-                                                <span className="flex items-center gap-1">
-                                                    <Briefcase className="h-4 w-4" />
-                                                    {position.salary}
-                                                </span>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col gap-2">
-                                            <Button onClick={() => navigate('/contact')}>
-                                                Apply Now
-                                                <ArrowRight className="ml-2 h-4 w-4" />
-                                            </Button>
-                                            <div className="flex flex-wrap gap-1">
-                                                {position.requirements.slice(0, 2).map((req) => (
-                                                    <span key={req} className="text-xs bg-secondary px-2 py-0.5 rounded text-muted-foreground">
-                                                        {req}
-                                                    </span>
-                                                ))}
-                                            </div>
+                        {POSITIONS.map((pos, i) => (
+                            <motion.div key={pos.title}
+                                initial={{ opacity: 0, y: 15 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                transition={{ duration: 0.4, delay: i * 0.08 }}
+                                className="rounded-xl border border-white/5 bg-neutral-950/20 p-6 hover:border-white/10 transition-all duration-300">
+                                <div className="flex items-start justify-between gap-6">
+                                    <div>
+                                        <h3 className="text-lg font-semibold text-white font-display mb-1">{pos.title}</h3>
+                                        <p className="text-sm text-neutral-400 font-light mb-3">{pos.desc}</p>
+                                        <div className="flex gap-4 text-xs text-neutral-500">
+                                            <span>{pos.type}</span>
+                                            <span>{pos.location}</span>
                                         </div>
                                     </div>
-                                </CardContent>
-                            </Card>
+                                    <Button onClick={() => navigate('/contact')} className="bg-primary hover:bg-primary/95 text-black shrink-0">
+                                        Apply <ArrowRight className="ml-2 h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </motion.div>
                         ))}
                     </div>
                 </div>
 
-                {/* Benefits */}
+                {/* Perks */}
                 <div className="mb-16">
-                    <div className="text-center mb-12">
-                        <span className="text-primary font-mono text-sm mb-2 block">// PERKS</span>
-                        <h2 className="text-3xl font-bold text-foreground">Why Join Us?</h2>
-                    </div>
-                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        {BENEFITS.map((benefit) => (
-                            <Card key={benefit.title} variant="glass">
-                                <CardContent className="pt-6">
-                                    <benefit.icon className="h-8 w-8 text-primary mb-4" />
-                                    <h3 className="font-semibold text-foreground mb-2">{benefit.title}</h3>
-                                    <p className="text-sm text-muted-foreground">{benefit.description}</p>
-                                </CardContent>
-                            </Card>
+                    <h2 className="text-xl font-bold text-white font-display mb-6">Perks</h2>
+                    <div className="grid gap-4 md:grid-cols-4">
+                        {perks.map((perk) => (
+                            <div key={perk.title} className="rounded-xl border border-white/5 bg-neutral-950/20 p-6">
+                                <perk.icon className="mb-4 h-6 w-6 text-primary" />
+                                <h3 className="font-semibold text-white font-display mb-1">{perk.title}</h3>
+                                <p className="text-xs text-neutral-400 font-light">{perk.desc}</p>
+                            </div>
                         ))}
                     </div>
                 </div>
-
-                {/* Culture */}
-                <Card variant="elevated" className="mb-16 border-primary/20">
-                    <CardContent className="p-8 lg:p-12">
-                        <div className="grid md:grid-cols-2 gap-8 items-center">
-                            <div>
-                                <span className="text-primary font-mono text-sm mb-2 block">// CULTURE</span>
-                                <h2 className="text-2xl font-bold text-foreground mb-4">How We Work</h2>
-                                <ul className="space-y-4">
-                                    {[
-                                        'Async-first communication with deep focus time',
-                                        'Bi-weekly sprints with clear ownership',
-                                        'Direct access to leadership and quick decisions',
-                                        'Ship fast, learn faster, iterate continuously',
-                                        'Celebrate wins and learn from failures openly',
-                                    ].map((item) => (
-                                        <li key={item} className="flex items-start gap-3">
-                                            <CheckCircle className="h-5 w-5 text-success flex-shrink-0 mt-0.5" />
-                                            <span className="text-muted-foreground">{item}</span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="p-6 bg-secondary/30 rounded-xl text-center">
-                                    <p className="text-3xl font-bold text-primary mb-1">4.8/5</p>
-                                    <p className="text-sm text-muted-foreground">Glassdoor Rating</p>
-                                </div>
-                                <div className="p-6 bg-secondary/30 rounded-xl text-center">
-                                    <p className="text-3xl font-bold text-primary mb-1">95%</p>
-                                    <p className="text-sm text-muted-foreground">Would Recommend</p>
-                                </div>
-                                <div className="p-6 bg-secondary/30 rounded-xl text-center col-span-2">
-                                    <p className="text-3xl font-bold text-primary mb-1">∞</p>
-                                    <p className="text-sm text-muted-foreground">Growth Opportunities</p>
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
 
                 {/* CTA */}
-                <Card variant="glass">
-                    <CardContent className="p-8 text-center">
-                        <h2 className="text-2xl font-bold text-foreground mb-4">
-                            Don't See Your Role?
-                        </h2>
-                        <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
-                            We're always looking for exceptional talent. Send us your resume and tell us
-                            how you can contribute to our mission.
-                        </p>
-                        <Button size="lg" onClick={() => navigate('/contact')}>
-                            Send Open Application
-                            <ArrowRight className="ml-2 h-4 w-4" />
-                        </Button>
-                    </CardContent>
-                </Card>
+                <div className="rounded-2xl border border-white/5 bg-neutral-950/20 p-10 max-w-3xl">
+                    <h2 className="mb-3 text-2xl font-bold text-white font-display">Do not see the right role?</h2>
+                    <p className="mb-6 text-neutral-400 font-light">We are always open to meeting interesting people.</p>
+                    <Button size="lg" onClick={() => navigate('/contact')} className="bg-primary hover:bg-primary/95 text-black">Say hi <ArrowRight className="ml-2 h-4 w-4" /></Button>
+                </div>
             </div>
         </div>
     );

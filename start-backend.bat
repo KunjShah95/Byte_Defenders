@@ -51,10 +51,10 @@ echo ========================================
 echo Starting Backend Server...
 echo ========================================
 echo.
-echo Backend will start on http://localhost:3001
-echo Setting PORT=3001 for this session
+echo Backend will start on http://localhost:3000
+echo Setting PORT=3000 for this session
 echo.
 
 cd /d "c:\Byte_Defenders\multi-agent-creative-studio"
-set PORT=3001
+set PORT=3000
 npm run dev

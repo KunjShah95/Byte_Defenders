@@ -35,7 +35,7 @@ This guide covers deploying both the frontend and backend applications.
 
    ```env
    NODE_ENV=production
-   PORT=3001
+   PORT=3000
    SUPABASE_URL=your_supabase_url
    SUPABASE_SERVICE_KEY=your_supabase_service_key
    ANTHROPIC_API_KEY=your_anthropic_key
@@ -136,7 +136,7 @@ docker push your-username/byte-defenders-backend
 **Docker run command:**
 
 ```bash
-docker run -p 3001:3001 \
+docker run -p 3000:3000 \
   -e SUPABASE_URL=your_url \
   -e SUPABASE_SERVICE_KEY=your_key \
   # ... other env vars

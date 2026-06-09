@@ -4,6 +4,7 @@
 import { Request, Response } from 'express';
 import { MemoryService } from '../services/memory.service';
 import { Logger } from '../utils/logger';
+import { sendSuccess, sendError } from '../utils/response';
 
 const memoryService = MemoryService.getInstance();
 const logger = Logger.getLogger('GetSessionAPI');
@@ -13,17 +14,13 @@ export async function getSession(req: Request, res: Response): Promise<void> {
     const { sessionId } = req.params;
 
     if (!sessionId) {
-      res.status(400).json({
-        error: 'sessionId is required',
-      });
+      sendError(res, 'sessionId is required', 400);
       return;
     }
 
     const sessionData = await memoryService.retrieve(sessionId, 'sessionData');
     if (!sessionData) {
-      res.status(404).json({
-        error: 'Session not found',
-      });
+      sendError(res, 'Session not found', 404);
       return;
     }
 
@@ -45,12 +42,9 @@ export async function getSession(req: Request, res: Response): Promise<void> {
 
     logger.info('Session retrieved', { sessionId });
 
-    res.status(200).json(response);
+    sendSuccess(res, response);
   } catch (error) {
     logger.error('Failed to get session', error);
-    res.status(500).json({
-      error: 'Failed to retrieve session',
-      details: String(error),
-    });
+    sendError(res, 'Failed to retrieve session', 500, String(error));
   }
 }

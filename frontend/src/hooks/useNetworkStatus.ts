@@ -15,7 +15,7 @@ export function useNetworkStatus(): NetworkState {
 
     useEffect(() => {
         const updateNetworkInfo = () => {
-            const connection = (navigator as any).connection;
+            const connection = (navigator as typeof navigator & { connection?: NetworkInformation }).connection;
 
             setState({
                 online: navigator.onLine,
@@ -31,7 +31,7 @@ export function useNetworkStatus(): NetworkState {
         window.addEventListener('online', updateNetworkInfo);
         window.addEventListener('offline', updateNetworkInfo);
 
-        const connection = (navigator as any).connection;
+        const connection = (navigator as typeof navigator & { connection?: NetworkInformation }).connection;
         if (connection) {
             connection.addEventListener('change', updateNetworkInfo);
         }

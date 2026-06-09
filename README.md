@@ -237,7 +237,7 @@ Create `multi-agent-creative-studio/.env`:
 
 ```env
 # Server Configuration
-PORT=3001
+PORT=3000
 NODE_ENV=development
 HOST=localhost
 
@@ -281,7 +281,7 @@ VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
 VITE_FIREBASE_APP_ID=1:123456789:web:abcdef
 
 # API Configuration
-VITE_API_BASE_URL=http://localhost:3001
+VITE_API_BASE_URL=http://localhost:3000
 ```
 
 ### Running the Application
@@ -300,7 +300,7 @@ You should see:
 ```
 Backend Starting...
 CORS Config: http://localhost:5173,http://localhost:5174,http://localhost:5175
-Server started successfully { port: 3001, env: 'development' }
+Server started successfully { port: 3000, env: 'development' }
 ```
 
 #### Terminal 2: Frontend Server
@@ -322,8 +322,8 @@ VITE v7.3.0  ready in 2345 ms
 ### Accessing the Application
 
 - **Frontend**: <http://localhost:5173>
-- **Backend API**: <http://localhost:3001>
-- **API Health Check**: <http://localhost:3001/api/v1/health>
+- **Backend API**: <http://localhost:3000>
+- **API Health Check**: <http://localhost:3000/api/v1/health>
 - **Motia Workbench**: <http://localhost:3000> (run `npm run dev` in root)
 
 ### Verification
@@ -331,7 +331,7 @@ VITE v7.3.0  ready in 2345 ms
 Test the backend is running:
 
 ```bash
-curl http://localhost:3001/api/v1/health
+curl http://localhost:3000/api/v1/health
 ```
 
 Expected response:
@@ -510,7 +510,7 @@ Ensure all environment variables are set in your deployment platform:
 ### Base URL
 
 ```
-http://localhost:3001/api/v1
+http://localhost:3000/api/v1
 ```
 
 ### Authentication
@@ -576,7 +576,7 @@ See [multi-agent-creative-studio/API_REFERENCE.md](./multi-agent-creative-studio
          │ REST API
          ▼
 ┌─────────────────────┐
-│  Express Backend    │ (Port 3001)
+│  Express Backend    │ (Port 3000)
 │  + Multi-Agents     │
 └──┬──────────────┬───┘
    │              │

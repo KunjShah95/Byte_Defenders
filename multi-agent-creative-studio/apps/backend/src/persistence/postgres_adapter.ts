@@ -1,6 +1,7 @@
 import { IPersistenceAdapter } from '../services/memory.service';
 import { Pool } from 'pg';
 import { PostgresConfig } from '../db/postgresStore';
+import { Logger } from '../utils/logger';
 
 /**
  * Real Postgres persistence adapter (production-ready).
@@ -13,7 +14,7 @@ export class PostgresAdapter implements IPersistenceAdapter {
     if (conn) {
       this.pool = new Pool({ connectionString: conn });
       this.initSchema().catch((e) => {
-        // Est. log in production; here we swallow to not block startup
+        Logger.getLogger('PostgresAdapter').error('Failed to initialize DB schema', e);
       });
     }
   }
@@ -96,32 +97,41 @@ export class PostgresAdapter implements IPersistenceAdapter {
     return Array.isArray(hist) ? hist : [];
   }
 
-  async getAllUserSessions(userId: string): Promise<any[]> {
-    if (!this.pool) return [];
+  async getAllUserSessions(userId: string, pagination?: { page?: number; limit?: number }): Promise<{ sessions: any[]; total: number }> {
+    if (!this.pool) return { sessions: [], total: 0 };
     try {
-      // Get all sessionData entries and filter by userId
+      const page = pagination?.page || 1;
+      const limit = pagination?.limit || 50;
+      const offset = (page - 1) * limit;
+
+      // Count total matching sessions
+      const countRes = await this.pool.query(
+        `SELECT COUNT(*) as cnt FROM state_store 
+         WHERE collection_name = $1 AND key LIKE $2
+         AND value->>'userId' = $3`,
+        ['sessions', '%:sessionData', userId]
+      );
+      const total = parseInt(countRes.rows[0]?.cnt || '0', 10);
+
+      // Get paginated session data
       const res = await this.pool.query(
         `SELECT value, updated_at FROM state_store 
          WHERE collection_name = $1 AND key LIKE $2
-         ORDER BY updated_at DESC`,
-        ['sessions', '%:sessionData']
+         AND value->>'userId' = $3
+         ORDER BY updated_at DESC
+         LIMIT $4 OFFSET $5`,
+        ['sessions', '%:sessionData', userId, limit, offset]
       );
 
-      const sessions: any[] = [];
-      res.rows.forEach((row: any) => {
-        const sessionData = row.value;
-        if (sessionData && sessionData.userId === userId) {
-          sessions.push({
-            ...sessionData,
-            updatedAt: row.updated_at,
-          });
-        }
-      });
+      const sessions: any[] = res.rows.map((row: any) => ({
+        ...row.value,
+        updatedAt: row.updated_at,
+      }));
 
-      return sessions;
+      return { sessions, total };
     } catch (err) {
       console.error('PostgreSQL getAllUserSessions error:', err);
-      return [];
+      return { sessions: [], total: 0 };
     }
   }
 }

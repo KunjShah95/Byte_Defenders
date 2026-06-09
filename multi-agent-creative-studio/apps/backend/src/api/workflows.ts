@@ -2,6 +2,7 @@
 import { Request, Response } from 'express';
 import { MultiAgentOrchestrator } from '../services/multiAgentOrchestrator.service';
 import { Logger } from '../utils/logger';
+import { sendSuccess, sendError } from '../utils/response';
 
 const orchestrator = MultiAgentOrchestrator.getInstance();
 const logger = Logger.getLogger('WorkflowsAPI');
@@ -12,28 +13,28 @@ export async function runWorkflow(req: Request, res: Response): Promise<void> {
         const { mode, tasks, initialContext } = req.body; // mode: 'parallel' | 'sequential'
 
         if (!sessionId) {
-            res.status(400).json({ error: 'sessionId is required in params' });
+            sendError(res, 'sessionId is required in params', 400);
             return;
         }
 
         if (!mode || !tasks || !Array.isArray(tasks)) {
-            res.status(400).json({ error: 'mode and tasks (array) are required in body' });
+            sendError(res, 'mode and tasks (array) are required in body', 400);
             return;
         }
 
         let results;
         if (mode === 'parallel') {
-            results = await orchestrator.runParallel(sessionId, tasks);
+            results = await orchestrator.runParallel(sessionId, tasks, { sessionId });
         } else if (mode === 'sequential') {
             results = await orchestrator.runSequential(sessionId, tasks, initialContext);
         } else {
-            res.status(400).json({ error: 'Invalid mode. Use parallel or sequential' });
+            sendError(res, 'Invalid mode. Use parallel or sequential', 400);
             return;
         }
 
-        res.json({ sessionId, mode, results });
+        sendSuccess(res, { sessionId, mode, results });
     } catch (error) {
         logger.error('Workflow execution failed', error);
-        res.status(500).json({ error: 'Workflow execution failed', details: String(error) });
+        sendError(res, 'Workflow execution failed', 500, String(error));
     }
 }

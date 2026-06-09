@@ -8,6 +8,8 @@ import {
   presenterAgentPrompts,
   researcherAgentPrompts,
   coderAgentPrompts,
+  strategistAgentPrompts,
+  qualityAssuranceAgentPrompts,
   getPromptTemplate,
   PromptContext,
   PromptTemplate,
@@ -40,6 +42,8 @@ export class PromptManagerService {
     presenter: presenterAgentPrompts,
     researcher: researcherAgentPrompts,
     coder: coderAgentPrompts,
+    strategist: strategistAgentPrompts,
+    'quality-assurance': qualityAssuranceAgentPrompts,
   };
 
   private constructor() { }
@@ -192,6 +196,21 @@ export class PromptManagerService {
         quick: 'pitch',
         technical: 'detailed',
         visual: 'visual',
+      },
+      strategist: {
+        default: 'strategic',
+        competitive: 'competitive',
+        metrics: 'successCriteria',
+      },
+      'quality-assurance': {
+        default: 'validation',
+        feasibility: 'feasibilityCheck',
+      },
+      researcher: {
+        default: 'general',
+      },
+      coder: {
+        default: 'implementation',
       },
     };
 

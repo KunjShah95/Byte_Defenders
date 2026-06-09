@@ -63,8 +63,9 @@ class AnalyticsService {
             console.log('[Analytics] Track:', event, enrichedProperties);
         }
 
-        if (typeof window !== 'undefined' && (window as any).gtag) {
-            (window as any).gtag('event', event, enrichedProperties);
+        const gtag = (window as typeof window & { gtag?: (...args: unknown[]) => void }).gtag;
+        if (typeof gtag === 'function') {
+            gtag('event', event, enrichedProperties);
         }
     }
 
@@ -119,8 +120,9 @@ class AnalyticsService {
             console.log('[Analytics] Identify:', userId, traits);
         }
 
-        if (typeof window !== 'undefined' && (window as any).gtag) {
-            (window as any).gtag('set', 'user_id', userId);
+        const gtag = (window as typeof window & { gtag?: (...args: unknown[]) => void }).gtag;
+        if (typeof gtag === 'function') {
+            gtag('set', 'user_id', userId);
         }
     }
 
@@ -138,11 +140,15 @@ class AnalyticsService {
         script.src = `https://www.googletagmanager.com/gtag/js?id=${measurementId}`;
         document.head.appendChild(script);
 
-        (window as any).dataLayer = (window as any).dataLayer || [];
-        function gtag(...args: any[]) {
-            (window as any).dataLayer.push(args);
+        const w = window as typeof window & {
+          dataLayer?: unknown[];
+          gtag?: (...args: unknown[]) => void;
+        };
+        w.dataLayer = w.dataLayer || [];
+        function gtag(...args: unknown[]) {
+          w.dataLayer!.push(args);
         }
-        (window as any).gtag = gtag;
+        w.gtag = gtag;
         gtag('js', new Date());
         gtag('config', measurementId, {
             send_page_view: false,

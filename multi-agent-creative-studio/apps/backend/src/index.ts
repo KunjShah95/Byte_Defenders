@@ -4,6 +4,7 @@
 import express, { Express, Request, Response } from 'express';
 import cors from 'cors';
 import { rateLimiter } from './middlewares/rateLimiter';
+import { sseLimiter } from './middlewares/sseLimiter';
 import { v4 as uuidv4 } from 'uuid';
 import { config } from './config';
 import { Logger } from './utils/logger';
@@ -26,16 +27,18 @@ import {
 } from './api/prompts';
 import { UUIDUtil } from './utils/uuid';
 import { asyncHandler } from './utils/asyncHandler';
+import { sendSuccess, sendError } from './utils/response';
+import { getConfig } from './api/health';
 
 const app: Express = express();
-
-console.log('Backend Starting...');
-console.log('CORS Config:', config.cors.origin);
 
 // Initialize Services
 AuthService.getInstance();
 const eventBus = EventBus.getInstance();
 const logger = Logger.getLogger('Main');
+
+logger.info('Backend starting', { port: config.port, cors: config.cors.origin });
+logger.info('CORS origins', config.cors.origin);
 
 // Apply CORS
 app.use(cors(config.cors));
@@ -50,7 +53,7 @@ app.use((req: Request, res: Response, next: any) => {
 app.use(rateLimiter(config.rateLimit.windowMs, config.rateLimit.maxRequests));
 
 // Middleware
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Logging middleware
@@ -61,18 +64,43 @@ app.use((req: Request, res: Response, next) => {
 });
 
 
-// Health check endpoint
+// Health check endpoint — simple liveness probe
 app.get('/health', (req: Request, res: Response) => {
-  res.json({
+  sendSuccess(res, {
     status: 'healthy',
-    timestamp: new Date(),
     uptime: process.uptime(),
   });
 });
 
+// Config diagnostics endpoint — shows which env vars are configured (no secrets revealed)
+app.get('/api/v1/health/config', asyncHandler(getConfig));
+
+// Auth diagnostic: check if a given Firebase token is valid
+app.post('/api/v1/health/auth-check', asyncHandler(async (req: Request, res: Response) => {
+  const { token } = req.body;
+  if (!token) {
+    sendError(res, 'token is required in request body', 400);
+    return;
+  }
+  try {
+    const { authService } = await import('./services/auth.service');
+    const decoded = await authService.verifyToken(token);
+    sendSuccess(res, {
+      valid: true,
+      uid: decoded.uid,
+      email: decoded.email,
+    });
+  } catch (err) {
+    sendSuccess(res, {
+      valid: false,
+      error: String(err),
+    });
+  }
+}));
+
 // Welcome route
 app.get('/', (req: Request, res: Response) => {
-  res.json({
+  sendSuccess(res, {
     message: 'Welcome to the Byte Defenders API',
     version: '1.0.0',
     endpoints: {
@@ -95,14 +123,14 @@ app.post('/api/v1/sessions/:sessionId/workflow/quick', authMiddleware, asyncHand
   const { topic } = req.body;
 
   if (!topic) {
-    res.status(400).json({ error: 'topic is required' });
+    sendError(res, 'topic is required', 400);
     return;
   }
 
   const workflow = new CreativeWorkflow();
   const result = await workflow.quickProcess(sessionId, topic);
 
-  res.json(result);
+  sendSuccess(res, result);
 }));
 
 app.post('/api/v1/sessions/:sessionId/workflow/full', authMiddleware, asyncHandler(async (req: Request, res: Response) => {
@@ -110,7 +138,7 @@ app.post('/api/v1/sessions/:sessionId/workflow/full', authMiddleware, asyncHandl
   const { topic, audience } = req.body;
 
   if (!topic) {
-    res.status(400).json({ error: 'topic is required' });
+    sendError(res, 'topic is required', 400);
     return;
   }
 
@@ -120,7 +148,7 @@ app.post('/api/v1/sessions/:sessionId/workflow/full', authMiddleware, asyncHandl
     audience: audience || 'general',
   });
 
-  res.json(result);
+  sendSuccess(res, result);
 }));
 
 app.post('/api/v1/sessions/:sessionId/workflow/custom', authMiddleware, asyncHandler(runWorkflow));
@@ -138,29 +166,49 @@ app.post('/api/v1/prompts/build', asyncHandler(buildPrompt));
 app.get('/api/v1/prompts/export/all', asyncHandler(exportAllPrompts));
 
 // Event subscription endpoint (for real-time updates)
-app.get('/api/v1/events/subscribe', (req: Request, res: Response) => {
+app.get('/api/v1/events/subscribe', authMiddleware, sseLimiter(5), (req: Request, res: Response) => {
+  const sessionId = req.query.sessionId as string | undefined;
+
   res.setHeader('Content-Type', 'text/event-stream');
   res.setHeader('Cache-Control', 'no-cache');
   res.setHeader('Connection', 'keep-alive');
 
+  // Send initial connection event
+  res.write(`data: ${JSON.stringify({ type: 'connected', data: { sessionId } })}\n\n`);
+
   // Subscribe to all events
-  const unsubscribe = eventBus.subscribe('*', (event) => {
-    res.write(`data: ${JSON.stringify(event)}\n\n`);
+  const unsubAll = eventBus.subscribe('*', (event: any) => {
+    // If sessionId filter is set, only forward matching events
+    if (sessionId && event?.sessionId && event.sessionId !== sessionId) return;
+    if (sessionId && event?.data?.sessionId && event.data.sessionId !== sessionId) return;
+
+    try {
+      res.write(`data: ${JSON.stringify(event)}\n\n`);
+    } catch {
+      // Client may have disconnected
+    }
   });
+
+  // Also keep a heartbeat so the connection stays alive
+  const heartbeat = setInterval(() => {
+    try {
+      res.write(`:heartbeat\n\n`);
+    } catch {
+      clearInterval(heartbeat);
+    }
+  }, 15000);
 
   // Clean up on disconnect
   req.on('close', () => {
-    unsubscribe();
+    unsubAll();
+    clearInterval(heartbeat);
     res.end();
   });
 });
 
 // 404 handler
 app.use((req: Request, res: Response) => {
-  res.status(404).json({
-    error: 'Not Found',
-    path: req.path,
-  });
+  sendError(res, 'Not Found', 404, { path: req.path });
 });
 
 // Error handler
@@ -184,21 +232,20 @@ app.use((err: any, req: Request, res: Response, next: express.NextFunction) => {
     return next(err);
   }
 
-  res.status(err.status || 500).json({
-    error: 'Internal Server Error',
-    message: config.nodeEnv === 'development' ? err.message : 'An error occurred',
-    ...(config.nodeEnv === 'development' && {
-      details: errorDetails,
-      stack: err.stack,
-    }),
-  });
+  sendError(
+    res,
+    'Internal Server Error',
+    err.status || 500,
+    config.nodeEnv === 'development' ? { details: errorDetails, stack: err.stack } : undefined,
+    (req as any).requestId,
+  );
 });
 
 // Start server
 const PORT = config.port;
-console.log(`Attempting to start server on port ${PORT}...`);
+logger.info(`Attempting to start server on port ${PORT}`);
 const server = app.listen(PORT, () => {
-  console.log(`✅ Server is now listening on port ${PORT}`);
+  logger.info(`Server is now listening on port ${PORT}`);
   logger.info(`Server started successfully`, {
     port: PORT,
     env: config.nodeEnv,
@@ -206,12 +253,20 @@ const server = app.listen(PORT, () => {
 });
 
 // Graceful shutdown
-process.on('SIGTERM', () => {
-  logger.info('SIGTERM received, shutting down gracefully');
+function shutdownGracefully(signal: string) {
+  logger.info(`${signal} received, shutting down gracefully`);
   server.close(() => {
     logger.info('Server closed');
     process.exit(0);
   });
+}
+
+process.on('SIGTERM', () => shutdownGracefully('SIGTERM'));
+process.on('SIGINT', () => shutdownGracefully('SIGINT'));
+
+// Handle unhandled promise rejections gracefully (don't crash on unhandled rejections)
+process.on('unhandledRejection', (reason) => {
+  logger.warn('Unhandled promise rejection', { reason: String(reason) });
 });
 
 export default app;

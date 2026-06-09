@@ -12,8 +12,6 @@ import {
     CreditCard,
     HelpCircle,
     LogOut,
-    Moon,
-    Sun,
     Command
 } from 'lucide-react';
 

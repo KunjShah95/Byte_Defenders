@@ -14,7 +14,7 @@ export class CoderAgent {
 
         const request = {
             sessionId,
-            agentType: 'coder',
+            agentType: 'coder' as const,
             input: {
                 task,
                 techStack,

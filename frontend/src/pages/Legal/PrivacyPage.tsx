@@ -1,6 +1,5 @@
 import React from 'react';
 import { Card, CardContent } from '@/components/common/Card';
-import { Shield } from 'lucide-react';
 
 export default function PrivacyPage() {
     return (
@@ -8,7 +7,7 @@ export default function PrivacyPage() {
             <div className="container max-w-4xl">
                 {/* Header */}
                 <div className="text-center mb-12">
-                    <span className="text-primary font-mono text-sm mb-2 block">// LEGAL</span>
+                    <span className="text-primary font-mono text-sm mb-2 block">Legal Protocol</span>
                     <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-4">
                         Privacy Policy
                     </h1>

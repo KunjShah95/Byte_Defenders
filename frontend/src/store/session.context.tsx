@@ -1,11 +1,12 @@
 import { useState, useCallback, ReactNode } from 'react';
-import { Session, SessionInput } from '@/types/session.types';
+import { Session, SessionInput, PaginationMeta } from '@/types/session.types';
 import { sessionService } from '@/services/session.service';
 import { SessionContext } from './session-context-base';
 
 export function SessionProvider({ children }: { children: ReactNode }) {
   const [currentSession, setCurrentSession] = useState<Session | null>(null);
   const [sessions, setSessions] = useState<Session[]>([]);
+  const [pagination, setPagination] = useState<PaginationMeta | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,12 +42,13 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  const loadAllSessions = useCallback(async (): Promise<void> => {
+  const loadAllSessions = useCallback(async (page?: number, limit?: number): Promise<void> => {
     setIsLoading(true);
     setError(null);
     try {
-      const allSessions = await sessionService.getAllSessions();
-      setSessions(allSessions);
+      const result = await sessionService.getAllSessions(page, limit);
+      setSessions(result.sessions);
+      setPagination(result.pagination);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load sessions');
     } finally {
@@ -58,20 +60,18 @@ export function SessionProvider({ children }: { children: ReactNode }) {
     setError(null);
     setIsLoading(true);
     try {
-      const session = await sessionService.getSession(id);
-      if (!session) throw new Error('Session not found');
+      // Build a temporary session with the input we have, then run the workflow
+      const tempSession = currentSession;
+      const input = tempSession?.input ?? { prompt: '', useCase: 'startup' as const, explainabilityMode: false };
 
-      setCurrentSession(session);
-
-      const updatedSession = await sessionService.runSession(id, session.input);
-
+      const updatedSession = await sessionService.runSession(id, input);
       setCurrentSession(updatedSession);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to run session');
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [currentSession]);
 
   const clearError = useCallback(() => {
     setError(null);
@@ -82,6 +82,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
       value={{
         currentSession,
         sessions,
+        pagination,
         isLoading,
         error,
         createSession,

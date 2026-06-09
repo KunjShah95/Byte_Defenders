@@ -5,6 +5,7 @@ interface DebounceOptions {
     leading?: boolean;
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function useDebounce<T extends (...args: any[]) => any>(
     callback: T,
     options: DebounceOptions = {}

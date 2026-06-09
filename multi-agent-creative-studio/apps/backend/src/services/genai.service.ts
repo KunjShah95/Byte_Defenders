@@ -41,7 +41,6 @@ export class GenAIService {
     this.model = config.genai.model;
     this.provider = config.genai.provider;
 
-    // Initialize Google AI if key is provided
     if (this.googleKey) {
       this.googleAI = new GoogleGenerativeAI(this.googleKey);
     }
@@ -54,9 +53,6 @@ export class GenAIService {
     return GenAIService.instance;
   }
 
-  /**
-   * Generate text using AI model
-   */
   async generateText(options: AIRequestOptions): Promise<AIResponse> {
     const provider = options.provider || this.provider;
 
@@ -74,26 +70,22 @@ export class GenAIService {
         return await this.generateWithMock(options);
       }
     } catch (error: any) {
-      this.logger.error('AI generation failed', { 
+      this.logger.error('AI generation failed', {
         error: error.message,
         stack: error.stack,
         provider,
         fallbackEnabled: config.genai.fallbackToMock
       });
-      
-      // Fallback to mock if enabled and we haven't already tried mock
+
       if (config.genai.fallbackToMock && provider !== 'mock') {
         this.logger.warn('Falling back to mock AI provider');
         return await this.generateWithMock(options);
       }
-      
+
       throw new Error(`AI generation failed: ${error.message}`);
     }
   }
 
-  /**
-   * Generate using Google Generative AI
-   */
   private async generateWithGoogle(options: AIRequestOptions): Promise<AIResponse> {
     if (!this.googleAI) {
       throw new Error('Google AI not initialized. Please set GOOGLE_API_KEY.');
@@ -132,7 +124,7 @@ export class GenAIService {
         },
       };
     } catch (error: any) {
-      this.logger.error('Google API call failed', { 
+      this.logger.error('Google API call failed', {
         message: error.message,
         status: error.status,
         statusText: error.statusText,
@@ -143,9 +135,6 @@ export class GenAIService {
     }
   }
 
-  /**
-   * Generate using OpenAI API
-   */
   private async generateWithOpenAI(options: AIRequestOptions): Promise<AIResponse> {
     if (!this.openaiKey) {
       throw new Error('OpenAI API key not configured');
@@ -199,256 +188,445 @@ export class GenAIService {
   }
 
   /**
-   * Mock AI call for development (fallback)
+   * Generate a deterministic pseudo-random value seeded from prompt content.
+   * Ensures the same prompt+agentType always produces the same result
+   * but different prompts produce different outputs.
    */
-  private async mockAICall(prompt: string, payload: any): Promise<AIResponse> {
-    // Simulate API latency
-    await new Promise((resolve) => setTimeout(resolve, 100));
+  private seededValue(seed: number, index: number = 0): number {
+    const hash = Math.abs(Math.sin(seed * 9301 + index * 49297) * 233280);
+    return hash - Math.floor(hash);
+  }
 
-    // Extract topic from prompt for more contextual responses
+  /**
+   * Pick an item from an array using the seeded random.
+   */
+  private pick<T>(arr: T[], seed: number, index: number): T {
+    return arr[Math.floor(this.seededValue(seed, index) * arr.length)];
+  }
+
+  /**
+   * Pick a number between min and max (inclusive) using seeded random.
+   */
+  private pickInt(seed: number, index: number, min: number, max: number): number {
+    return min + Math.floor(this.seededValue(seed, index) * (max - min + 1));
+  }
+
+  /**
+   * Dynamic mock response generator.
+   *
+   * Instead of returning canned text, this method:
+   * 1. Extracts context from the prompt (topic, keywords, domain, audience)
+   * 2. Uses a seed derived from the prompt content for deterministic variety
+   * 3. Generates agent-appropriate response structure with unique sections
+   * 4. Incorporates actual prompt content into the response
+   * 5. Varies scores, metrics, and section counts
+   */
+  private generateDynamicMockResponse(
+    prompt: string,
+    agentType: string,
+    systemPrompt?: string,
+  ): { text: string; reasoning: string } {
+    // Extract context from prompt
     const topicMatch = prompt.match(/topic[:\s]+([^\n.]+)/i);
     const topic = topicMatch ? topicMatch[1].trim() : 'the given topic';
 
-    // Mock response based on prompt keywords with detailed content
-    let mockText = '';
-    if (prompt.toLowerCase().includes('idea') || prompt.toLowerCase().includes('generating ideas')) {
-      mockText = `# Innovative Business Concept: ${topic}
+    const domainMatch = prompt.match(/domain[:\s]+([^\n.]+)/i);
+    const domain = domainMatch ? domainMatch[1].trim() : '';
 
-## Core Idea
-A comprehensive platform that revolutionizes ${topic} by combining cutting-edge technology with sustainable practices and user-centric design.
+    const audienceMatch = prompt.match(/audience[:\s]+([^\n.]+)/i);
+    const audience = audienceMatch ? audienceMatch[1].trim() : '';
 
-## Key Features
-1. **Smart Integration**: Leverage AI and machine learning to optimize operations and user experience
-2. **Sustainability Focus**: Implement eco-friendly practices and carbon-neutral operations
-3. **Community Building**: Create a strong network effect through social features and rewards
-4. **Scalable Model**: Design for rapid growth and market expansion
+    const goalsMatch = prompt.match(/goals[:\s]+([^\n.]+)/i);
+    const goals = goalsMatch ? goalsMatch[1].trim() : '';
 
-## Target Market
-- Primary: Tech-savvy consumers aged 25-45
-- Secondary: Environmentally conscious businesses and organizations
-- Tertiary: B2B partnerships and enterprise clients
+    // Build a seed from the prompt content + agent type for deterministic variety
+    const seedString = `${prompt.substring(0, 100)}::${agentType}::${topic}`;
+    let seed = 0;
+    for (let i = 0; i < seedString.length; i++) {
+      seed = ((seed << 5) - seed) + seedString.charCodeAt(i);
+      seed |= 0;
+    }
+    const seedAbs = Math.abs(seed) || 1;
 
-## Value Proposition
-Delivers convenience, sustainability, and cost savings while building a loyal community around shared values.
+    // Common phrases pool for variety
+    const openingPhrases = [
+      `After thorough analysis of "${topic}", I've developed the following`,
+      `Based on comprehensive evaluation of the topic "${topic}", here is my`,
+      `Drawing from deep expertise in this domain, I present my`,
+      `Having carefully considered "${topic}" from multiple angles, here is my`,
+      `Through systematic analysis of "${topic}", I've arrived at the following`,
+    ];
 
-## Initial Go-to-Market Strategy
-Phase 1: Launch pilot program in major metropolitan areas
-Phase 2: Expand based on user feedback and market validation
-Phase 3: Scale nationally and explore international markets`;
-    } else if (prompt.toLowerCase().includes('critic') || prompt.toLowerCase().includes('evaluat')) {
-      mockText = `# Critical Analysis
+    const closingPhrases = [
+      'This provides a solid foundation for the next phase of development.',
+      'These insights should serve as a springboard for further refinement.',
+      'The path forward is clear, with multiple avenues for exploration.',
+      'This analysis offers actionable direction for implementation.',
+      'These findings represent a comprehensive starting point for execution.',
+    ];
 
-## Strengths
-- **Innovation**: The concept presents a fresh approach to an existing market need
-- **Timing**: Current market trends favor this type of solution
-- **Differentiation**: Clear unique value propositions that set it apart
+    const metrics = [
+      { label: 'Market Readiness', value: this.pickInt(seedAbs, 0, 55, 95) },
+      { label: 'Innovation Score', value: this.pickInt(seedAbs, 1, 60, 98) },
+      { label: 'Feasibility Index', value: this.pickInt(seedAbs, 2, 50, 90) },
+      { label: 'User Impact', value: this.pickInt(seedAbs, 3, 45, 95) },
+      { label: 'Scalability Potential', value: this.pickInt(seedAbs, 4, 40, 92) },
+    ];
 
-## Areas for Improvement
+    const opening = this.pick(openingPhrases, seedAbs, 0);
+    const closing = this.pick(closingPhrases, seedAbs, 1);
 
-### Market Viability
-- Need more detailed competitive analysis
-- Market size validation required
-- Customer acquisition cost projections needed
+    const ideaKeywords = [
+      `AI-powered ${topic} assistant`,
+      `Decentralized ${topic} marketplace`,
+      `${topic}-as-a-Service platform`,
+      `${topic} collaboration hub`,
+      `Smart ${topic} optimization engine`,
+    ];
 
-### Operational Challenges
-- **Supply Chain**: Complex logistics that may impact scalability
-- **Regulatory Compliance**: Industry-specific regulations to navigate
-- **Technology Stack**: High initial development costs
+    const sections = [
+      'Core Concept',
+      'Key Features',
+      'Target Audience',
+      'Value Proposition',
+      'Implementation Strategy',
+      'Risk Factors',
+      'Next Steps',
+    ];
 
-### Financial Considerations
-- Burn rate may be high in early stages
-- Revenue model needs stress testing
-- Consider alternative funding strategies
+    const sectionCount = this.pickInt(seedAbs, 2, 4, sections.length);
 
-## Recommendations
-1. Conduct thorough market research and validation
-2. Build MVP to test core assumptions
-3. Establish strategic partnerships early
-4. Plan for regulatory compliance from day one
-5. Develop contingency plans for key risks
+    // Build dynamic response based on agent type
+    let text = '';
+    let reasoning = '';
 
-## Overall Assessment
-Promising concept with solid foundation but requires refinement in execution strategy and risk mitigation.`;
-    } else if (prompt.toLowerCase().includes('refin') || prompt.toLowerCase().includes('improv')) {
-      mockText = `# Refined Business Concept
+    if (agentType === 'idea' || agentType === 'strategist') {
+      const conceptName = this.pick(ideaKeywords, seedAbs, 3);
+      const numIdeas = this.pickInt(seedAbs, 4, 3, 6);
 
-## Enhanced Core Proposition
-Building on the original concept, we've integrated the feedback to create a more robust and market-ready solution:
+      text = `# ${conceptName}\n\n${opening}:\n\n## Strategic Foundation\n\n`;
+      text += `**Domain Focus**: ${domain || 'Cross-industry innovation'}\n`;
+      text += `**Target Market**: ${audience || 'Tech-enabled enterprises and consumers'}\n`;
+      text += `**Primary Goal**: ${goals || `Revolutionize ${topic} through technology and user-centric design`}\n\n`;
 
-### Strengthened Value Proposition
-- **Immediate Benefits**: Clearly articulated time and cost savings for users
-- **Long-term Value**: Loyalty programs and community engagement features
-- **Social Impact**: Measurable positive environmental and social outcomes
+      for (let i = 1; i <= numIdeas; i++) {
+        const angle = this.pick([
+          'technology-first',
+          'user-centric',
+          'sustainability-driven',
+          'community-powered',
+          'data-optimized',
+          'platform-based',
+        ], seedAbs, i * 10);
+        text += `## Concept ${i}: ${this.pick(ideaKeywords, seedAbs, i * 7)}\n\n`;
+        text += `A **${angle}** approach that leverages cutting-edge technology to address key pain points in the ${topic} space. `;
+        text += `This concept focuses on ${this.pick(['scalability', 'user experience', 'market disruption', 'operational efficiency', 'sustainability'], seedAbs, i * 13)} `;
+        text += `as its primary differentiator.\n\n`;
+        text += `**Key Advantage**: ${this.pick([
+          `First-mover opportunity in ${topic}`,
+          `Unique integration of AI and ${topic}`,
+          `Novel approach to solving ${topic} challenges`,
+          `Combination of proven methods with innovative technology`,
+          `Strong network effects within the ${topic} ecosystem`,
+        ], seedAbs, i * 17)}\n\n`;
+      }
 
-## Improved Operational Model
+      text += `## Strategic Recommendations\n\n`;
+      const recCount = this.pickInt(seedAbs, 50, 3, 5);
+      for (let i = 1; i <= recCount; i++) {
+        text += `${i}. ${this.pick([
+          `Validate the core assumptions through market research before full-scale development`,
+          `Build an MVP focusing on the highest-value feature set first`,
+          `Establish strategic partnerships to accelerate market entry`,
+          `Develop a phased rollout strategy with clear success metrics at each stage`,
+          `Invest in user research to refine the product-market fit continuously`,
+          `Create a feedback loop with early adopters to iterate rapidly`,
+        ], seedAbs, i * 20)}\n`;
+      }
 
-### Phase 1: Foundation (Months 1-6)
-- Launch MVP with core features
-- Establish partnerships with 3-5 key suppliers
-- Build initial user base of 1,000-5,000 active users
-- Validate unit economics
+      reasoning = this.pick([
+        `Strategic framework developed from analysis of ${topic} market dynamics and user needs`,
+        `Ideation process leveraged multiple creative frameworks and domain expertise in ${topic}`,
+        `Concepts generated through systematic exploration of ${topic} opportunities and constraints`,
+      ], seedAbs, 99);
 
-### Phase 2: Growth (Months 7-18)
-- Expand service offerings based on user feedback
-- Scale to 3-5 additional markets
-- Achieve positive unit economics
-- Raise Series A funding
+    } else if (agentType === 'critic' || agentType === 'quality-assurance') {
+      const strengthCount = this.pickInt(seedAbs, 5, 3, 5);
+      const concernCount = this.pickInt(seedAbs, 6, 3, 6);
 
-### Phase 3: Scale (Months 19-36)
-- National expansion
-- Platform partnerships and integrations
-- Additional revenue streams
-- Path to profitability
+      text = `# Comprehensive ${agentType === 'quality-assurance' ? 'Quality Assessment' : 'Critical Analysis'}\n\n`;
+      text += `${opening}:\n\n## Executive Summary\n\n`;
+      text += `After thorough evaluation of "${topic}", this concept demonstrates `;
+      text += `${this.pick(['significant', 'moderate', 'considerable'], seedAbs, 7)} potential with `;
+      text += `${this.pick(['several', 'some', 'notable'], seedAbs, 8)} areas requiring attention.\n\n`;
 
-## Risk Mitigation Strategies
-1. **Market Risk**: Diversify service offerings and target markets
-2. **Operational Risk**: Build redundancy into supply chain
-3. **Financial Risk**: Maintain 12-18 month runway at all times
-4. **Technology Risk**: Use proven tech stack with fallback options
+      text += `## Strengths\n\n`;
+      for (let i = 1; i <= strengthCount; i++) {
+        text += `**${this.pick([
+          'Innovative Approach',
+          'Market Timing',
+          'User Focus',
+          'Scalability',
+          'Technical Feasibility',
+          'Competitive Advantage',
+          'Revenue Potential',
+        ], seedAbs, i * 10)}**: `;
+        text += `${this.pick([
+          `The concept addresses a genuine market need in the ${topic} space`,
+          `Strong alignment with current industry trends and user expectations`,
+          `Clear differentiation from existing solutions in the market`,
+          `Well-thought-out approach to user acquisition and retention`,
+          `Solid technical foundation with room for future expansion`,
+          `Realistic assessment of resource requirements and timeline`,
+          `Strong potential for network effects and community building`,
+        ], seedAbs, i * 12)}\n\n`;
+      }
 
-## Competitive Advantages
-- First-mover advantage in specific niche
-- Strong brand positioning around sustainability
-- Network effects create switching costs
-- Data insights improve over time
+      text += `## Areas for Improvement\n\n`;
+      for (let i = 1; i <= concernCount; i++) {
+        text += `**${this.pick([
+          'Competitive Response',
+          'Market Validation',
+          'Technical Complexity',
+          'Resource Requirements',
+          'Regulatory Compliance',
+          'User Adoption',
+          'Revenue Model',
+        ], seedAbs, i * 20)}**: `;
+        text += `${this.pick([
+          `Larger competitors may enter this space with significant resources`,
+          `Additional market validation is needed to confirm demand assumptions`,
+          `The technical architecture may require more specialized expertise`,
+          `Initial resource estimates may need to be revised upward`,
+          `Regulatory considerations could impact the timeline significantly`,
+          `User acquisition costs may be higher than initially projected`,
+          `The revenue model requires further stress-testing and validation`,
+        ], seedAbs, i * 22)}\n\n`;
+      }
 
-## Success Metrics
-- Monthly Active Users (MAU)
-- Customer Acquisition Cost (CAC)
-- Lifetime Value (LTV)
-- Net Promoter Score (NPS)
-- Revenue Growth Rate`;
-    } else if (prompt.toLowerCase().includes('present') || prompt.toLowerCase().includes('final')) {
-      mockText = `# Executive Presentation: ${topic}
+      text += `## ${agentType === 'quality-assurance' ? 'Quality Metrics' : 'Scoring Metrics'}\n\n`;
+      for (const m of metrics.slice(0, this.pickInt(seedAbs, 70, 3, 5))) {
+        const bar = '█'.repeat(Math.floor(m.value / 10)) + '░'.repeat(10 - Math.floor(m.value / 10));
+        text += `- **${m.label}**: ${m.value}/100 ${bar}\n`;
+      }
 
-## Vision Statement
-To become the leading platform for ${topic}, transforming how people interact with this space while creating positive environmental and social impact.
+      text += `\n## Recommendations\n\n`;
+      const recCount2 = this.pickInt(seedAbs, 80, 3, 4);
+      for (let i = 1; i <= recCount2; i++) {
+        text += `${i}. ${this.pick([
+          `Conduct targeted market research to validate key assumptions about ${topic}`,
+          `Develop a prototype to test core features with real users`,
+          `Establish advisory board with domain experts in ${topic}`,
+          `Create detailed financial projections with multiple scenarios`,
+          `Build contingency plans for identified risk factors`,
+          `Focus on a single use case to achieve product-market fit before expanding`,
+        ], seedAbs, i * 30)}\n`;
+      }
 
-## Market Opportunity
-- **Total Addressable Market (TAM)**: $50B globally
-- **Serviceable Addressable Market (SAM)**: $10B in target regions
-- **Serviceable Obtainable Market (SOM)**: $500M within 3 years
+      reasoning = this.pick([
+        `Critical evaluation performed across ${strengthCount + concernCount} dimensions using established analysis frameworks`,
+        `Quality assessment conducted through systematic evaluation against defined success criteria`,
+        `Analysis synthesized from multiple perspectives including market, technical, and user considerations`,
+      ], seedAbs, 98);
 
-## The Solution
-Our platform addresses three critical pain points:
-1. **Convenience**: Streamlined user experience saves 40% time
-2. **Sustainability**: 60% reduction in carbon footprint
-3. **Value**: 25% cost savings compared to traditional alternatives
+    } else if (agentType === 'refiner') {
+      const improvements = this.pickInt(seedAbs, 10, 4, 7);
 
-## Business Model
-### Revenue Streams
-1. Transaction fees (70% of revenue)
-2. Subscription tiers (20% of revenue)
-3. B2B partnerships (10% of revenue)
+      text = `# Refined Concept: ${this.pick(ideaKeywords, seedAbs, 11)}\n\n${opening}:\n\n`;
+      text += `## Refinement Summary\n\n`;
+      text += `The original concept has been strengthened through systematic improvements addressing `;
+      text += `${this.pickInt(seedAbs, 12, 3, 5)} key areas. The refined version offers:\n\n`;
+      text += `- **Enhanced Clarity**: Clearer articulation of the core value proposition\n`;
+      text += `- **Improved Feasibility**: More realistic implementation approach\n`;
+      text += `- **Stronger Differentiation**: Sharper competitive positioning\n`;
+      text += `- **Better Risk Mitigation**: Comprehensive contingency planning\n`;
 
-### Unit Economics
-- Average Order Value: $45
-- Customer Acquisition Cost: $15
-- Lifetime Value: $180
-- LTV/CAC Ratio: 12:1
+      text += `\n## Key Improvements\n\n`;
+      for (let i = 1; i <= improvements; i++) {
+        text += `### Improvement ${i}: ${this.pick([
+          'Strengthened Value Proposition',
+          'Enhanced User Experience',
+          'Optimized Business Model',
+          'Improved Technical Architecture',
+          'Streamlined Operations',
+          'Better Market Positioning',
+          'Refined Go-to-Market Strategy',
+          'Enhanced Risk Management',
+        ], seedAbs, i * 15)}\n\n`;
+        text += this.pick([
+          `The core offering has been refined to deliver more immediate value to users, with clearer differentiation from alternatives and a stronger emphasis on the unique benefits specific to ${topic}.`,
+          `The user experience has been redesigned to reduce friction points and improve engagement, incorporating feedback loops and personalization features that adapt to individual user needs within the ${topic} space.`,
+          `The business model has been restructured to improve unit economics, with multiple revenue streams that reduce dependency on any single source and create more sustainable growth.`,
+          `The technical approach now leverages more mature, proven technologies while maintaining flexibility for future innovation, reducing implementation risk.`,
+          `Operational processes have been streamlined to reduce overhead and improve scalability, with automation handling routine tasks and freeing resources for value-added activities.`,
+        ], seedAbs, i * 18);
+        text += '\n\n';
+      }
 
-## Go-to-Market Strategy
-**Year 1**: Establish presence in 5 metropolitan areas, achieve 50K users
-**Year 2**: Expand to 15 markets, reach 250K users, achieve break-even
-**Year 3**: National coverage, 1M users, achieve profitability
+      text += `\n## Implementation Roadmap\n\n`;
+      const phases = this.pickInt(seedAbs, 60, 3, 4);
+      for (let i = 1; i <= phases; i++) {
+        text += `**Phase ${i}** (${this.pick(['Months 1-3', 'Months 4-6', 'Months 7-12', 'Months 13-18'], seedAbs, i * 25)}): `;
+        text += `${this.pick([
+          `Foundation and core infrastructure for ${topic}`,
+          `MVP launch with essential features and early adopter program`,
+          `Scale operations and expand feature set based on user feedback`,
+          `Optimize for growth and prepare for market expansion`,
+        ], seedAbs, i * 28)}\n`;
+      }
 
-## Competitive Landscape
-- **Direct Competitors**: 3 main players with traditional models
-- **Our Advantage**: Technology-first approach with sustainability focus
-- **Market Positioning**: Premium yet accessible service
+      reasoning = this.pick([
+        `Refinements based on systematic analysis of original concept strengths and weaknesses in context of ${topic}`,
+        `Improvements derived from iterative evaluation against best practices and market requirements for ${topic}`,
+        `Enhanced version incorporates feedback from multiple perspectives to create a more robust and viable solution`,
+      ], seedAbs, 97);
 
-## Team & Expertise
-- Experienced founding team with domain expertise
-- Advisory board with industry veterans
-- Strong technical team with proven track record
+    } else if (agentType === 'presenter') {
+      text = `# Executive Presentation: ${topic}\n\n${opening}:\n\n`;
+      text += `## Executive Summary\n\n`;
+      text += `This presentation outlines a comprehensive strategy for ${topic}, `;
+      text += `targeting ${audience || 'enterprise and consumer markets'} with a projected market opportunity of `;
+      text += `$${this.pickInt(seedAbs, 30, 5, 50)}B by ${2026 + this.pickInt(seedAbs, 31, 1, 4)}.\n\n`;
 
-## Financial Projections
-**Year 1**: $2M revenue, -$3M EBITDA
-**Year 2**: $10M revenue, -$1M EBITDA  
-**Year 3**: $35M revenue, +$5M EBITDA
+      text += `## Market Opportunity\n\n`;
+      text += `- **Total Addressable Market**: $${this.pickInt(seedAbs, 32, 10, 100)}B\n`;
+      text += `- **Serviceable Addressable Market**: $${this.pickInt(seedAbs, 33, 3, 30)}B\n`;
+      text += `- **Serviceable Obtainable Market**: $${this.pickInt(seedAbs, 34, 1, 10)}B\n`;
+      text += `- **Projected CAGR**: ${this.pickInt(seedAbs, 35, 12, 35)}%\n\n`;
 
-## Investment Ask
-Seeking $5M Series A to fund:
-- Product development (40%)
-- Marketing & user acquisition (35%)
-- Operations & team expansion (20%)
-- Working capital (5%)
+      text += `## Business Model\n\n`;
+      const revenueStreams = this.pickInt(seedAbs, 36, 3, 5);
+      let totalPct = 0;
+      const pcts: number[] = [];
+      for (let i = 0; i < revenueStreams; i++) {
+        const remaining = 100 - totalPct - (revenueStreams - i - 1);
+        const pct = this.pickInt(seedAbs, 37 + i, Math.max(10, remaining - 20), remaining);
+        pcts.push(pct);
+        totalPct += pct;
+      }
+      pcts[pcts.length - 1] += 100 - totalPct;
 
-## Milestones & Timeline
-Q1: Launch MVP, secure initial partnerships
-Q2-Q3: Market validation, iterate based on feedback
-Q4: Scale to 3 markets, achieve product-market fit
-Year 2: Geographic expansion and revenue growth
-Year 3: Path to profitability and Series B preparation
+      const streamNames = [
+        'Subscription Tiers', 'Transaction Fees', 'Enterprise Licensing',
+        'Advertising Revenue', 'Data Insights', 'Professional Services',
+        'Marketplace Commissions', 'API Access Fees',
+      ];
+      for (let i = 0; i < revenueStreams; i++) {
+        text += `- **${streamNames[i]}**: ${pcts[i]}% of revenue\n`;
+      }
 
-## Call to Action
-Join us in revolutionizing ${topic} while building a sustainable and profitable business. Together, we can create meaningful impact and strong returns.`;
+      text += `\n## Financial Projections\n\n`;
+      text += `| Metric | Year 1 | Year 2 | Year 3 |\n`;
+      text += `|--------|--------|--------|--------|\n`;
+      text += `| Revenue | $${this.pickInt(seedAbs, 50, 1, 5)}M | $${this.pickInt(seedAbs, 51, 5, 20)}M | $${this.pickInt(seedAbs, 52, 20, 80)}M |\n`;
+      text += `| EBITDA | -$${this.pickInt(seedAbs, 53, 1, 5)}M | $${this.pickInt(seedAbs, 54, -2, 5)}M | $${this.pickInt(seedAbs, 55, 5, 25)}M |\n`;
+      text += `| Users | ${this.pickInt(seedAbs, 56, 10, 100)}K | ${this.pickInt(seedAbs, 57, 100, 500)}K | ${this.pickInt(seedAbs, 58, 500, 2000)}K |\n\n`;
+
+      text += `## Go-to-Market Strategy\n\n`;
+      text += `**Phase 1**: Launch in ${this.pickInt(seedAbs, 61, 2, 5)} key markets with targeted pilot programs\n`;
+      text += `**Phase 2**: Expand based on validated learnings and user feedback\n`;
+      text += `**Phase 3**: Scale nationally and explore international opportunities\n\n`;
+
+      text += `## Investment Ask\n\n`;
+      text += `Seeking $${this.pickInt(seedAbs, 62, 3, 15)}M in ${this.pick(['Seed', 'Series A', 'Series B'], seedAbs, 63)} funding to:\n`;
+      text += `- Product development: ${this.pickInt(seedAbs, 64, 30, 50)}%\n`;
+      text += `- Marketing & growth: ${this.pickInt(seedAbs, 65, 20, 35)}%\n`;
+      text += `- Operations & team: ${this.pickInt(seedAbs, 66, 15, 25)}%\n`;
+      text += `- Working capital: ${this.pickInt(seedAbs, 67, 5, 15)}%\n\n`;
+
+      text += `## Call to Action\n\n`;
+      text += closing;
+
+      reasoning = this.pick([
+        `Presentation structured for executive audience with focus on market opportunity, business model, and financial projections for ${topic}`,
+        `Comprehensive pitch deck developed with data-driven market analysis and clear investment thesis in ${topic}`,
+        `Executive summary crafted to highlight the strategic value and growth potential of the ${topic} opportunity`,
+      ], seedAbs, 96);
+
     } else {
-      mockText = `# Comprehensive Analysis
+      // Default: research/coder/other agents
+      text = `# Analysis: ${topic}\n\n${opening}:\n\n`;
+      text += `## Key Findings\n\n`;
 
-Based on the provided context, here's a detailed response:
+      for (let i = 1; i <= this.pickInt(seedAbs, 70, 4, 7); i++) {
+        text += `### Finding ${i}\n\n`;
+        text += this.pick([
+          `The ${topic} landscape is evolving rapidly with new technologies and changing user expectations driving transformation.`,
+          `Market analysis reveals significant opportunity for innovation in how ${topic} services are delivered and consumed.`,
+          `User research indicates strong demand for solutions that address key pain points in the current ${topic} ecosystem.`,
+          `Technical feasibility assessment confirms that modern tools and frameworks make implementation achievable within reasonable timelines.`,
+          `Competitive analysis shows gaps in the market that can be exploited with the right strategic positioning.`,
+          `Stakeholder interviews highlight the need for solutions that balance innovation with practical implementation realities.`,
+          `Industry trends point toward increasing adoption of AI and automation in the ${topic} space.`,
+        ], seedAbs, i * 40);
+        text += '\n\n';
+      }
 
-## Key Insights
-- The concept shows strong potential in the current market environment
-- Strategic positioning aligns with emerging consumer trends
-- Multiple pathways to value creation and market penetration
+      text += `## Conclusions\n\n`;
+      text += closing;
 
-## Detailed Breakdown
-1. **Market Dynamics**: Understanding target audience needs and behaviors
-2. **Competitive Analysis**: Identifying gaps and opportunities in existing solutions
-3. **Value Creation**: Clear articulation of benefits to stakeholders
-4. **Execution Strategy**: Practical steps for implementation and scaling
-
-## Strategic Recommendations
-- Focus on core value proposition and user experience
-- Build strong partnerships to accelerate growth
-- Maintain flexibility to adapt to market feedback
-- Establish clear metrics for success tracking
-
-## Next Steps
-1. Validate assumptions through market research
-2. Develop minimum viable product
-3. Test with early adopter segment
-4. Iterate based on learnings
-5. Scale proven model systematically
-
-The path forward requires careful execution balanced with bold vision.`;
+      reasoning = this.pick([
+        `Research conducted across multiple dimensions including market analysis, technical feasibility, and user needs in ${topic}`,
+        `Comprehensive analysis synthesized from available data and domain expertise in ${topic}`,
+        `Systematic evaluation performed using established research methodologies and frameworks`,
+      ], seedAbs, 95);
     }
 
-    return {
-      text: mockText,
-      reasoning: 'Generated using mock AI service with enhanced content',
-      metadata: {
-        model: payload.model,
-        provider: 'mock',
-        tokensUsed: Math.floor(Math.random() * 500) + 300,
-      },
-    };
+    return { text, reasoning };
   }
 
   /**
    * Generate text with mock implementation
    */
   private async generateWithMock(options: AIRequestOptions): Promise<AIResponse> {
+    // Simulate realistic AI latency (varies by response length)
     const prompt = options.systemPrompt
       ? `${options.systemPrompt}\n\n${options.userPrompt}`
       : options.userPrompt;
 
-    return this.mockAICall(prompt, {
-      model: options.model || this.model,
-    });
+    // Determine agent type from system prompt or context
+    const agentType = options.systemPrompt?.toLowerCase().includes('strategist')
+      ? 'strategist'
+      : options.systemPrompt?.toLowerCase().includes('quality')
+        ? 'quality-assurance'
+        : options.systemPrompt?.toLowerCase().includes('researcher')
+          ? 'researcher'
+          : options.systemPrompt?.toLowerCase().includes('critic')
+            ? 'critic'
+            : options.systemPrompt?.toLowerCase().includes('refiner')
+              ? 'refiner'
+              : options.systemPrompt?.toLowerCase().includes('presenter')
+                ? 'presenter'
+                : options.systemPrompt?.toLowerCase().includes('coder')
+                  ? 'coder'
+                  : 'idea';
+
+    // Variable delay to simulate API latency (100-300ms)
+    const delayMs = 100 + Math.floor(Math.abs(Math.sin(prompt.length)) * 200);
+    await new Promise((resolve) => setTimeout(resolve, delayMs));
+
+    const { text, reasoning } = this.generateDynamicMockResponse(
+      prompt,
+      agentType,
+      options.systemPrompt,
+    );
+
+    return {
+      text,
+      reasoning,
+      metadata: {
+        model: options.model || this.model,
+        provider: 'mock',
+        tokensUsed: Math.floor(text.split(/\s+/).length * 1.3),
+        agentType,
+      },
+    };
   }
 
-  /**
-   * Set OpenAI API key
-   */
   setOpenAIKey(key: string): void {
     this.openaiKey = key;
   }
 
-  /**
-   * Set Google API key
-   */
   setGoogleKey(key: string): void {
     this.googleKey = key;
     if (key) {
@@ -456,9 +634,6 @@ The path forward requires careful execution balanced with bold vision.`;
     }
   }
 
-  /**
-   * Set provider
-   */
   setProvider(provider: string): void {
     this.provider = provider;
   }

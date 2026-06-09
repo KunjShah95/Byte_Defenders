@@ -4,6 +4,7 @@
 import { Request, Response } from 'express';
 import { MemoryService } from '../services/memory.service';
 import { Logger } from '../utils/logger';
+import { sendSuccess, sendError } from '../utils/response';
 
 const memoryService = MemoryService.getInstance();
 const logger = Logger.getLogger('GetResultAPI');
@@ -13,18 +14,14 @@ export async function getResult(req: Request, res: Response): Promise<void> {
     const { sessionId } = req.params;
 
     if (!sessionId) {
-      res.status(400).json({
-        error: 'sessionId is required',
-      });
+      sendError(res, 'sessionId is required', 400);
       return;
     }
 
     const allMemory = await memoryService.getAll(sessionId);
 
     if (!allMemory || Object.keys(allMemory).length === 0) {
-      res.status(404).json({
-        error: 'Session not found',
-      });
+      sendError(res, 'Session not found', 404);
       return;
     }
 
@@ -47,12 +44,9 @@ export async function getResult(req: Request, res: Response): Promise<void> {
 
     logger.info('Result retrieved', { sessionId });
 
-    res.status(200).json(result);
+    sendSuccess(res, result);
   } catch (error) {
     logger.error('Failed to get result', error);
-    res.status(500).json({
-      error: 'Failed to retrieve result',
-      details: String(error),
-    });
+    sendError(res, 'Failed to retrieve result', 500, String(error));
   }
 }

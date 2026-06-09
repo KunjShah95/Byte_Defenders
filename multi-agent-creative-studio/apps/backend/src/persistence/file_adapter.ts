@@ -143,10 +143,11 @@ export class FileAdapter implements IPersistenceAdapter {
         return this.memoryCache.has(sessionId);
     }
 
-    async pushContext(sessionId: string, agentName: string, context: Record<string, any>): Promise<void> {
+    async pushContext(sessionId: string, agentName: string, context: Record<string, any>, agentType?: string): Promise<void> {
         const executionHistory = (await this.retrieve(sessionId, 'executionHistory')) || [];
         executionHistory.push({
             agent: agentName,
+            agentType,
             context,
             timestamp: new Date(),
         });
@@ -161,7 +162,7 @@ export class FileAdapter implements IPersistenceAdapter {
     /**
      * Get all sessions for a specific user
      */
-    async getAllUserSessions(userId: string): Promise<any[]> {
+    async getAllUserSessions(userId: string, pagination?: { page?: number; limit?: number }): Promise<{ sessions: any[]; total: number }> {
         const sessions: any[] = [];
         
         this.memoryCache.forEach((store, sessionId) => {
@@ -178,6 +179,16 @@ export class FileAdapter implements IPersistenceAdapter {
             }
         });
         
-        return sessions.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+        sessions.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+        
+        const total = sessions.length;
+        const page = pagination?.page || 1;
+        const limit = pagination?.limit || 50;
+        const offset = (page - 1) * limit;
+        
+        return {
+            sessions: sessions.slice(offset, offset + limit),
+            total,
+        };
     }
 }

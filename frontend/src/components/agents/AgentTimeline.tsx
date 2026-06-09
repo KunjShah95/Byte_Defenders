@@ -23,7 +23,6 @@ interface AgentTimelineProps {
 export function AgentTimeline({ agents, sessionId, className, onStatusUpdate }: AgentTimelineProps) {
   const [agentStatuses, setAgentStatuses] = useState<Map<string, AgentExecutionStatus>>(new Map());
   const [isConnected, setIsConnected] = useState(false);
-  const [eventSource, setEventSource] = useState<EventSource | null>(null);
 
   // Real-time status colors
   const statusColors = {
@@ -87,7 +86,7 @@ export function AgentTimeline({ agents, sessionId, className, onStatusUpdate }: 
           }, 3000);
         };
 
-        setEventSource(es);
+
         
         return () => {
           es.close();

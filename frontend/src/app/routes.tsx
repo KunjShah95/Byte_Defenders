@@ -29,6 +29,7 @@ import SecurityPage from '@/pages/Legal/SecurityPage';
 import ChangelogPage from '@/pages/Changelog/ChangelogPage';
 
 import SettingsPage from '@/pages/Settings/SettingsPage';
+import AuditDashboardPage from '@/pages/AuditDashboard/AuditDashboardPage';
 
 import NotFound from '@/pages/NotFound';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
@@ -64,6 +65,7 @@ export function AppRoutes() {
       <Route path="/session/:sessionId" element={<ProtectedRoute><SessionDetailsPage /></ProtectedRoute>} />
       <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><SettingsPage /></ProtectedRoute>} />
+      <Route path="/audit" element={<ProtectedRoute><AuditDashboardPage /></ProtectedRoute>} />
 
       <Route path="*" element={<NotFound />} />
     </Routes>

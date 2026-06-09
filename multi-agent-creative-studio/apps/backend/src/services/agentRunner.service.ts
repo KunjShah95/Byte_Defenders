@@ -88,6 +88,22 @@ export class AgentRunnerService {
       temperature: 0.2,
       maxTokens: 6000, // Increased for complete, production-ready code with comments
     });
+
+    this.agents.set('strategist', {
+      name: 'Strategist',
+      type: 'strategist',
+      defaultTemplate: 'strategic',
+      temperature: 0.6,
+      maxTokens: 4500,
+    });
+
+    this.agents.set('quality-assurance', {
+      name: 'Quality Assurance',
+      type: 'quality-assurance',
+      defaultTemplate: 'validation',
+      temperature: 0.4,
+      maxTokens: 4000,
+    });
   }
 
   /**

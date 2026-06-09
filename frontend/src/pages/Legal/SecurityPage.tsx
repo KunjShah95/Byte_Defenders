@@ -62,7 +62,7 @@ export default function SecurityPage() {
             <div className="container max-w-5xl">
                 {/* Header */}
                 <div className="text-center mb-12">
-                    <span className="text-primary font-mono text-sm mb-2 block">// SECURITY</span>
+                    <span className="text-primary font-mono text-sm mb-2 block">Security Standards</span>
                     <h1 className="text-4xl lg:text-5xl font-bold text-foreground mb-4">
                         Security First
                     </h1>

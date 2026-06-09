@@ -5,7 +5,6 @@ import { Button } from '@/components/common/Button';
 import {
     Brain,
     Eye,
-    RefreshCw,
     Target,
     ArrowRight,
     ArrowLeft,

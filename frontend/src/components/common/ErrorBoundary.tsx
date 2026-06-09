@@ -38,11 +38,13 @@ export class ErrorBoundary extends Component<Props, State> {
             this.props.onError(error, errorInfo);
         }
 
-        if (typeof window !== 'undefined' && (window as any).gtag) {
-            (window as any).gtag('event', 'exception', {
-                description: error.message,
-                fatal: false,
-            });
+        // Report error to analytics if gtag is available
+        const gtag = (window as typeof window & { gtag?: (...args: unknown[]) => void }).gtag;
+        if (typeof gtag === 'function') {
+          gtag('event', 'exception', {
+            description: error.message,
+            fatal: false,
+          });
         }
     }
 

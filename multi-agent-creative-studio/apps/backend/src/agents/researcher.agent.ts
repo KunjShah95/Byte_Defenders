@@ -14,7 +14,7 @@ export class ResearcherAgent {
 
         const request = {
             sessionId,
-            agentType: 'researcher',
+            agentType: 'researcher' as const,
             input: {
                 topic,
             },

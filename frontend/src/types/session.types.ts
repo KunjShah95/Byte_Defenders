@@ -36,3 +36,17 @@ export const USE_CASE_LABELS: Record<UseCase, string> = {
   education: 'Educational Content',
   research: 'Research Project',
 };
+
+/** Pagination metadata returned by paginated API endpoints */
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+/** Wrapper for paginated API responses */
+export interface PaginatedResponse<T> {
+  sessions: T[];
+  pagination: PaginationMeta;
+}

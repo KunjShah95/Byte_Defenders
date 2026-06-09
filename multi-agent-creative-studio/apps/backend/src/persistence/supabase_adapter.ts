@@ -1,8 +1,10 @@
 import { IPersistenceAdapter } from '../services/memory.service';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
+import { Logger } from '../utils/logger';
 
 export class SupabaseAdapter implements IPersistenceAdapter {
   private client: SupabaseClient | null = null;
+  private logger = Logger.getLogger('SupabaseAdapter');
 
   constructor() {
     const url = process.env.SUPABASE_URL;
@@ -21,24 +23,24 @@ export class SupabaseAdapter implements IPersistenceAdapter {
 
   async initializeSession(sessionId: string): Promise<void> {
     if (!this.client) {
-      console.warn('Supabase client not initialized');
+      this.logger.warn('Supabase client not initialized');
       return;
     }
     // Store as JSONB object, not stringified
     const { error } = await this.client.from('state_store').upsert([{ collection_name: 'sessions', key: `session:${sessionId}`, value: {} }]);
     if (error) {
-      console.error('Supabase initializeSession error:', error);
+      this.logger.error('Supabase initializeSession error:', { message: error.message });
     }
   }
 
   async store(sessionId: string, key: string, value: any): Promise<void> {
     if (!this.client) {
-      console.warn('Supabase client not initialized');
+      this.logger.warn('Supabase client not initialized');
       return;
     }
     const { error } = await this.client.from('state_store').upsert([{ collection_name: 'sessions', key: `${sessionId}:${key}`, value }]);
     if (error) {
-      console.error('Supabase store error:', error);
+      this.logger.error('Supabase store error:', { message: error.message });
     }
   }
 
@@ -53,12 +55,12 @@ export class SupabaseAdapter implements IPersistenceAdapter {
         .maybeSingle();
 
       if (error) {
-        console.error('Supabase retrieve error:', error);
+        this.logger.error('Supabase retrieve error:', { message: error.message });
         return null;
       }
       return data?.value ?? null;
     } catch (err) {
-      console.error('Unexpected Supabase retrieve error:', err);
+      this.logger.error('Unexpected Supabase retrieve error:', { error: String(err) });
       return null;
     }
   }
@@ -72,7 +74,7 @@ export class SupabaseAdapter implements IPersistenceAdapter {
       .like('key', `${sessionId}:%`);
 
     if (error) {
-      console.error('Supabase getAll error:', error);
+      this.logger.error('Supabase getAll error:', { message: error.message });
       return {};
     }
     if (!data) return {};
@@ -93,7 +95,7 @@ export class SupabaseAdapter implements IPersistenceAdapter {
       .or(`key.eq.session:${sessionId},key.like.${sessionId}:%`);
 
     if (error) {
-      console.error('Supabase clear error:', error);
+      this.logger.error('Supabase clear error:', { message: error.message });
     }
   }
 
@@ -101,7 +103,7 @@ export class SupabaseAdapter implements IPersistenceAdapter {
     if (!this.client) return false;
     const { count, error } = await this.client.from('state_store').select('1', { count: 'exact' }).eq('collection_name', 'sessions').eq('key', `session:${sessionId}`);
     if (error) {
-      console.error('Supabase exists error:', error);
+      this.logger.error('Supabase exists error:', { message: error.message });
       return false;
     }
     return (count ?? 0) > 0;
@@ -124,23 +126,36 @@ export class SupabaseAdapter implements IPersistenceAdapter {
     return Array.isArray(hist) ? hist : [];
   }
 
-  async getAllUserSessions(userId: string): Promise<any[]> {
-    if (!this.client) return [];
+  async getAllUserSessions(userId: string, pagination?: { page?: number; limit?: number }): Promise<{ sessions: any[]; total: number }> {
+    if (!this.client) return { sessions: [], total: 0 };
     try {
-      // Get all sessions for this user (sessionData keys that match pattern)
+      const page = pagination?.page || 1;
+      const limit = pagination?.limit || 50;
+      const from = (page - 1) * limit;
+      const to = from + limit - 1;
+
+      // Get total count first
+      const { count } = await this.client
+        .from('state_store')
+        .select('*', { count: 'exact', head: true })
+        .eq('collection_name', 'sessions')
+        .like('key', '%:sessionData');
+
+      // Get paginated sessions
       const { data, error } = await this.client
         .from('state_store')
         .select('key, value')
         .eq('collection_name', 'sessions')
         .like('key', '%:sessionData')
-        .order('updated_at', { ascending: false });
+        .order('updated_at', { ascending: false })
+        .range(from, to);
 
       if (error) {
-        console.error('Supabase getAllUserSessions error:', error);
-        return [];
+        this.logger.error('Supabase getAllUserSessions error:', { message: error.message });
+        return { sessions: [], total: 0 };
       }
 
-      if (!data) return [];
+      if (!data) return { sessions: [], total: 0 };
 
       const sessions: any[] = [];
       for (const row of data as any[]) {
@@ -153,10 +168,10 @@ export class SupabaseAdapter implements IPersistenceAdapter {
         }
       }
 
-      return sessions;
+      return { sessions, total: count || 0 };
     } catch (err) {
-      console.error('Unexpected Supabase getAllUserSessions error:', err);
-      return [];
+      this.logger.error('Unexpected Supabase getAllUserSessions error:', { error: String(err) });
+      return { sessions: [], total: 0 };
     }
   }
 }

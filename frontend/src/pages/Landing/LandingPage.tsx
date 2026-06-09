@@ -1,471 +1,297 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { Button } from '@/components/common/Button';
-import { Card, CardContent } from '@/components/common/Card';
+import { AuroraBackground } from '@/components/aceternity/AuroraBackground';
+import { BackgroundBeams } from '@/components/aceternity/BackgroundBeams';
+import { Spotlight } from '@/components/aceternity/Spotlight';
+import { TextGenerateEffect } from '@/components/aceternity/TextGenerateEffect';
 import {
-  ArrowRight,
-  RefreshCw,
-  Eye,
-  GitBranch,
-  Layers,
-  Clock,
-  Shield,
-  BarChart3,
-  Star,
-  ChevronRight,
-  Play,
-  CheckCircle,
-  MessageSquare,
-  TrendingUp,
-  Cpu,
-  Network,
-  Workflow,
-  Lightbulb
+  ArrowRight, Eye, Play, CheckCircle,
+  MessageSquare, Shield,
+  ChevronDown, Lightbulb, Heart, Quote, Coffee
 } from 'lucide-react';
 
-const MARQUEE_ITEMS = [
-  'Advanced Reasoning',
-  'Autonomous Orchestration',
-  'Zero-Shot Refinement',
-  'Chain-of-Thought Logs',
-  'Deterministic Output',
-  'Multi-Agent Synthesis',
-  'Contextual Memory',
+const painPoints = [
+  { icon: Lightbulb, title: 'That 2 AM idea', description: 'You wake up with something that feels electric. By morning, you are second-guessing whether it is actually good.' },
+  { icon: MessageSquare, title: 'The friend test', description: 'You pitch it to a friend. They say "sounds cool" because they are nice. You still have no idea if it works.' },
+  { icon: Heart, title: 'The lonely build', description: 'You start coding or writing alone. Three weeks in, you hit a wall you could have seen coming if someone had just asked the right questions.' },
 ];
 
-function Marquee({ items, direction = 'left' }: { items: string[]; direction?: 'left' | 'right' }) {
-  const doubled = [...items, ...items];
-  return (
-    <div className="relative overflow-hidden whitespace-nowrap py-4">
-      <div className="absolute inset-y-0 left-0 w-20 bg-gradient-to-r from-background to-transparent z-10" />
-      <div className="absolute inset-y-0 right-0 w-20 bg-gradient-to-l from-background to-transparent z-10" />
-      <div
-        className={`inline-flex gap-12 ${direction === 'left' ? 'animate-marquee' : 'animate-marquee-reverse'}`}
-      >
-        {doubled.map((item, i) => (
-          <span
-            key={i}
-            className="inline-flex items-center gap-3 text-xs uppercase tracking-[0.2em] font-medium text-muted-foreground/50"
-          >
-            <span className="h-1 w-1 rounded-full bg-primary/30" />
-            {item}
-          </span>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-const STATS = [
-  { value: '4', label: 'Specialized Agents', icon: Cpu },
-  { value: '2-3', label: 'Avg Iterations', icon: RefreshCw },
-  { value: '85%', label: 'Improvement Rate', icon: TrendingUp },
-  { value: '<60s', label: 'Total Runtime', icon: Clock },
+const howItWorks = [
+  { title: 'You share your raw thought', description: 'A messy paragraph, a voice note, a half-baked diagram. No need to dress it up.' },
+  { title: 'We argue about it', description: 'One model plays editor. One plays skeptic. They go back and forth, sharpening what you actually mean.' },
+  { title: 'You get back something real', description: 'A structured brief. A cleaned-up spec. A pitch that does not sound like it was written by a robot.' },
 ];
 
-const USE_CASES = [
-  {
-    icon: Lightbulb,
-    title: 'Startup Ideas',
-    description: 'Transform raw startup concepts into validated business propositions with market analysis.',
-    color: 'from-amber-500/20 to-orange-500/20',
-    iconColor: 'text-amber-400',
-  },
-  {
-    icon: MessageSquare,
-    title: 'Content Creation',
-    description: 'Generate compelling marketing copy, blog posts, and social media content at scale.',
-    color: 'from-blue-500/20 to-cyan-500/20',
-    iconColor: 'text-blue-400',
-  },
-  {
-    icon: Workflow,
-    title: 'Product Design',
-    description: 'Iterate on product features and UX flows with structured feedback loops.',
-    color: 'from-purple-500/20 to-pink-500/20',
-    iconColor: 'text-purple-400',
-  },
-  {
-    icon: BarChart3,
-    title: 'Strategy Planning',
-    description: 'Develop comprehensive business strategies with SWOT analysis and action items.',
-    color: 'from-emerald-500/20 to-teal-500/20',
-    iconColor: 'text-emerald-400',
-  },
+const testimonials = [
+  { quote: "I used to sit alone at my desk for hours staring at a blank screen. Having someone—even an AI system—push back on my ideas made me feel like I was not building in a vacuum anymore.", author: "Sarah Chen", role: "Solo Founder", avatar: "SC" },
+  { quote: "ChatGPT told me my billing logic was great. The critic here found three holes in ten seconds. I almost did not ship that feature.", author: "Marcus Johnson", role: "Indie Hacker", avatar: "MJ" },
+  { quote: "Watching the debate logs feels like standing outside a room where two smart people are arguing about your work. It is uncomfortable and exactly what I needed.", author: "Priya Sharma", role: "Product Designer", avatar: "PS" },
 ];
 
-const TESTIMONIALS = [
-  {
-    quote: "This multi-agent system transformed our brainstorming sessions. Ideas that used to take days now get refined in minutes.",
-    author: "Sarah Chen",
-    role: "Product Lead, TechVentures",
-    avatar: "SC",
-  },
-  {
-    quote: "The explainability feature is a game-changer. We can see exactly how each agent contributed to the final output.",
-    author: "Marcus Johnson",
-    role: "AI Research Director, InnoLabs",
-    avatar: "MJ",
-  },
-  {
-    quote: "Finally, an AI tool that doesn't feel like a black box. The transparency builds trust with stakeholders.",
-    author: "Priya Sharma",
-    role: "Strategy Consultant, Deloitte",
-    avatar: "PS",
-  },
+const faqItems = [
+  { question: 'Why not just use ChatGPT?', answer: 'ChatGPT is trained to be agreeable. It will tell you your idea has potential because that is what helpful assistants do. Our system is designed to push back, because the fastest way to improve an idea is to stress-test it while it is still cheap to change.' },
+  { question: 'Who is this actually for?', answer: 'Solo founders who do not have a co-founder to argue with. Indie hackers who ship alone. Designers and writers who want a real editor, not a cheerleader. Basically anyone who has ever thought, "I wish someone would just tell me if this is stupid."' },
+  { question: 'How does the back-and-forth work?', answer: 'You give us a raw thought. An agent drafts a first pass. A second agent reads it like a cynical product lead and lists everything wrong with it. A third rewrites based on that feedback. You see every step in plain text.' },
+  { question: 'Is my idea safe?', answer: 'We do not train on your sessions. Your data is encrypted and we do not share it. We built this because we wanted a tool we could trust ourselves.' },
 ];
-
-const PRICING_TIERS = [
-  {
-    name: 'Starter',
-    price: 'Free',
-    description: 'Perfect for trying out multi-agent collaboration',
-    features: [
-      '5 sessions per month',
-      'Basic agent pipeline',
-      'Standard output formats',
-      'Community support',
-    ],
-    cta: 'Get Started',
-    highlighted: false,
-  },
-  {
-    name: 'Pro',
-    price: '₹2,499',
-    period: '/month',
-    description: 'For teams that need more power and flexibility',
-    features: [
-      'Unlimited sessions',
-      'Priority processing',
-      'Custom agent configs',
-      'API access',
-      'Advanced analytics',
-      'Priority support',
-    ],
-    cta: 'Start Free Trial',
-    highlighted: true,
-  },
-  {
-    name: 'Enterprise',
-    price: 'Custom',
-    description: 'For organizations with advanced requirements',
-    features: [
-      'Everything in Pro',
-      'Custom agent training',
-      'On-premise deployment',
-      'SLA guarantees',
-      'Dedicated account manager',
-      'Custom integrations',
-    ],
-    cta: 'Contact Sales',
-    highlighted: false,
-  },
-];
-
-const FAQ_ITEMS = [
-  {
-    question: 'How do the AI agents collaborate?',
-    answer: 'Our system uses a pipeline architecture where each specialized agent (Idea, Critic, Refiner, Presenter) processes the output sequentially. Each agent adds value through their unique perspective, creating a refined final output through structured collaboration.',
-  },
-  {
-    question: 'What makes this different from ChatGPT?',
-    answer: 'Unlike single-model systems, our multi-agent approach provides built-in quality control through the Critic agent, iterative refinement, and complete transparency. You can see exactly how each agent contributed to the final result.',
-  },
-  {
-    question: 'Can I customize the agents?',
-    answer: 'Pro and Enterprise plans include custom agent configurations. You can adjust critique criteria, refinement strategies, and output formats to match your specific use case and industry requirements.',
-  },
-  {
-    question: 'Is my data secure?',
-    answer: 'Yes, we take security seriously. All data is encrypted in transit and at rest. Enterprise plans include options for on-premise deployment and custom data retention policies.',
-  },
-];
-
-function AnimatedCounter({ value, suffix = '' }: { value: string; suffix?: string }) {
-  const [displayValue, setDisplayValue] = useState('0');
-
-  useEffect(() => {
-    const numericValue = parseInt(value.replace(/[^0-9]/g, ''));
-    if (isNaN(numericValue)) {
-      setDisplayValue(value);
-      return;
-    }
-
-    let current = 0;
-    const increment = numericValue / 30;
-    const timer = setInterval(() => {
-      current += increment;
-      if (current >= numericValue) {
-        setDisplayValue(value);
-        clearInterval(timer);
-      } else {
-        setDisplayValue(Math.floor(current).toString());
-      }
-    }, 50);
-
-    return () => clearInterval(timer);
-  }, [value]);
-
-  return <span>{displayValue}{suffix}</span>;
-}
-
-function FAQItem({ question, answer, isOpen, onClick }: {
-  question: string;
-  answer: string;
-  isOpen: boolean;
-  onClick: () => void;
-}) {
-  return (
-    <div className="border-b border-white/5 last:border-0">
-      <button
-        onClick={onClick}
-        className="w-full py-6 flex items-center justify-between text-left hover:text-primary transition-colors group"
-      >
-        <span className="font-medium text-white/90 group-hover:text-primary transition-colors">{question}</span>
-        <ChevronRight className={`h-5 w-5 text-muted-foreground transition-transform duration-300 ${isOpen ? 'rotate-90' : ''}`} />
-      </button>
-      {isOpen && (
-        <div className="pb-6 text-muted-foreground text-sm animate-in fade-in slide-in-from-top-2 duration-300">
-          {answer}
-        </div>
-      )}
-    </div>
-  );
-}
 
 export default function LandingPage() {
   const navigate = useNavigate();
   const [openFAQ, setOpenFAQ] = useState<number | null>(null);
 
   return (
-    <div className="relative min-h-screen bg-background selection:bg-primary/30 selection:text-white overflow-x-hidden">
-      {/* Vertical Grid Lines - Signature Design Element */}
-      <div className="fixed inset-0 pointer-events-none -z-10 flex justify-center overflow-hidden">
-        <div className="w-full max-w-7xl h-full border-x border-white/[0.03] relative">
-          <div className="absolute left-1/4 h-full border-r border-white/[0.03]" />
-          <div className="absolute left-1/2 h-full border-r border-white/[0.03]" />
-          <div className="absolute left-3/4 h-full border-r border-white/[0.03]" />
-        </div>
+    <div className="relative min-h-screen overflow-x-hidden bg-background text-foreground selection:bg-primary/30 selection:text-primary-foreground font-sans">
+      
+      {/* Background global layout gridlines */}
+      <div className="absolute inset-0 pointer-events-none z-0">
+        <div className="mx-auto h-full max-w-7xl w-full grid-layout-lines" />
       </div>
 
-      {/* Hero Section */}
-      <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden mesh-gradient">
-        <div className="absolute inset-0 bg-grid-white/[0.02] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
-
-        <div className="container relative z-10 px-4 mx-auto">
-          <div className="mx-auto max-w-5xl text-center space-y-10 animate-in slide-in-from-bottom-4 duration-1000">
-
-
-            <h1 className="text-5xl md:text-8xl font-bold tracking-tight text-white leading-[0.9]">
-              The Orchestra <br />
-              <span className="text-gradient">Studio</span>.
-            </h1>
-
-            <p className="mx-auto max-w-2xl text-lg md:text-xl text-muted-foreground/80 leading-relaxed font-light">
-              Don't just prompt. Orchestrate a team of specialized AI agents that think,
-              critique, and refine your vision until it's flawless.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-6">
-              <Button
-                size="lg"
-                onClick={() => navigate('/create')}
-                className="h-14 px-8 text-base bg-primary text-primary-foreground hover:scale-105 transition-transform group"
-              >
-                Launch New Workspace
-                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                onClick={() => navigate('/history')}
-                className="h-14 px-8 text-base border-white/10 bg-white/5 backdrop-blur-md hover:bg-white/10 transition-all font-medium text-white"
-              >
-                <Play className="mr-2 h-4 w-4 fill-current" />
-                Watch Runtime Demo
-              </Button>
-            </div>
-
-            <div className="pt-12 flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-primary" />
-                <span>No credit card needed</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-primary" />
-                <span>5 free sessions</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle className="h-4 w-4 text-primary" />
-                <span>Full explainability</span>
-              </div>
-            </div>
-          </div>
+      {/* ========== HERO SECTION ========== */}
+      <section className="relative min-h-screen flex items-center justify-center border-b border-border">
+        <div className="absolute inset-0 z-0">
+          <AuroraBackground className="h-full w-full opacity-60" />
+          <Spotlight className="-top-40 left-0 md:left-60 md:-top-20" />
+          <BackgroundBeams className="opacity-10" />
         </div>
-      </section>
 
-      {/* Marquee Section */}
-      <section className="border-y border-border bg-secondary/30 py-6">
-        <Marquee items={MARQUEE_ITEMS} direction="left" />
-      </section>
+        <div className="container relative z-10 mx-auto px-6 py-32 max-w-5xl">
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="mb-10"
+          >
+            <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/[0.03] px-4 py-1.5 text-xs font-medium text-neutral-400 tracking-wide">
+              <span className="h-1.5 w-1.5 rounded-full bg-primary" />
+              Adversarial AI Spec Drafting Platform
+            </span>
+          </motion.div>
 
-      {/* Stats Section */}
-      <section className="py-24 lg:py-32 bg-background">
-        <div className="container px-4 mx-auto">
-          <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
-            {STATS.map((stat) => (
-              <div key={stat.label} className="relative group">
-                <div className="absolute inset-0 bg-gradient-to-br from-primary/10 to-transparent rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="relative text-center p-8 border border-white/5 rounded-2xl bg-white/[0.02]">
-                  <stat.icon className="h-8 w-8 text-primary/50 mx-auto mb-4 group-hover:text-primary transition-colors" />
-                  <p className="text-4xl font-bold text-white mb-2 leading-none">
-                    <AnimatedCounter value={stat.value} />
-                  </p>
-                  <p className="text-sm text-muted-foreground uppercase tracking-wider font-medium">{stat.label}</p>
-                </div>
+          <motion.h1
+            initial={{ opacity: 0, y: 25 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
+            className="max-w-4xl text-5xl font-extrabold leading-[1.05] tracking-tight text-white sm:text-7xl md:text-8xl lg:text-9xl font-display"
+          >
+            Turn raw ideas into<br />
+            <span className="text-gradient-glow relative inline-block group hover:scale-105 transition-transform duration-300">production-ready specs</span>
+            <span className="text-white">.</span>
+          </motion.h1>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.4, ease: "easeOut" }}
+            className="mt-10 max-w-2xl"
+          >
+            <TextGenerateEffect
+              words="Draft, critique, and refine your product briefs in seconds. We chain four specialized AI agents in a continuous debate loop to stress-test your logic, catch edge cases, and compile robust, human-readable specifications."
+              className="text-lg md:text-xl text-neutral-400 font-light leading-relaxed"
+              filter={false}
+            />
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.6, ease: "easeOut" }}
+            className="mt-12 flex flex-col gap-5 sm:flex-row"
+          >
+            <Button
+              size="lg"
+              onClick={() => navigate('/create')}
+              className="group relative h-14 overflow-hidden rounded-xl bg-primary px-8 text-base font-bold text-primary-foreground transition-all hover:bg-primary/90 hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <span className="relative z-10 flex items-center gap-2">
+                Try it free
+                <ArrowRight className="h-4.5 w-4.5 transition-transform group-hover:translate-x-1" />
+              </span>
+            </Button>
+
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={() => navigate('/about')}
+              className="h-14 border-border bg-muted/20 hover:bg-muted/40 px-8 text-base font-medium text-foreground backdrop-blur-sm transition-all hover:scale-[1.02] active:scale-[0.98]"
+            >
+              <Play className="mr-2 h-4 w-4 fill-foreground" />
+              How it works
+            </Button>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.6, delay: 0.8, ease: "easeOut" }}
+            className="mt-16 flex flex-wrap gap-8 text-xs font-mono uppercase tracking-widest text-muted-foreground"
+          >
+            {['No credit card required', '5 free sessions', 'Plain text logs — no black boxes'].map((text) => (
+              <div key={text} className="flex items-center gap-2">
+                <CheckCircle className="h-4 w-4 text-primary" />
+                <span>{text}</span>
               </div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
-      {/* Pipeline Section */}
-      <section className="py-24 lg:py-40 relative">
-        <div className="container relative z-10 px-4 mx-auto">
-          <div className="mb-24 flex flex-col md:flex-row items-end justify-between gap-12">
-            <div className="max-w-xl">
-              <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-6">THE PIPELINE</div>
-              <h2 className="text-5xl md:text-7xl font-bold text-white tracking-tight leading-[1.1]">
-                Deep Reasoning <br />By Design.
-              </h2>
-            </div>
-            <p className="max-w-md text-muted-foreground text-lg md:text-xl font-light leading-relaxed mb-2">
-              Every concept runs through our proprietary agent chain, ensuring every weakness is addressed before you ever see the output.
-            </p>
-          </div>
-
-          <div className="grid gap-px bg-white/5 border border-white/5 rounded-3xl overflow-hidden md:grid-cols-4">
-            {[
-              { icon: '💡', title: 'Context Engine', step: 'INITIALIZE', desc: 'Parses your prompt into structured agent instructions.' },
-              { icon: '🔍', title: 'Adversarial Review', step: 'CRITIQUE', desc: 'Identifies logical gaps and edge-case failures.' },
-              { icon: '✨', title: 'Optimization Loop', step: 'REFINE', desc: 'Iteratively solves for feedback to maximize quality.' },
-              { icon: '📊', title: 'Synthesis', step: 'DELIVER', desc: 'Formats insights into production-ready deliverables.' },
-            ].map((agent) => (
-              <div key={agent.title} className="bg-background group p-12 hover:bg-white/[0.02] transition-colors relative">
-                <div className="text-[10px] font-bold text-primary mb-10 tracking-[0.4em] opacity-40 group-hover:opacity-100 transition-opacity">{agent.step}</div>
-                <div className="text-5xl mb-8 grayscale group-hover:grayscale-0 transition-all duration-500 transform group-hover:scale-110">{agent.icon}</div>
-                <h3 className="text-2xl font-semibold text-white mb-4 tracking-tight">{agent.title}</h3>
-                <p className="text-muted-foreground/70 leading-relaxed font-light">{agent.desc}</p>
-                <div className="absolute bottom-0 left-0 h-1 w-0 bg-primary group-hover:w-full transition-all duration-500" />
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Use Cases Section */}
-      <section className="py-24 lg:py-32 bg-secondary/10">
-        <div className="container px-4 mx-auto">
-          <div className="mb-20 text-center max-w-3xl mx-auto">
-            <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-4">APPLICABILITY</div>
-            <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">
-              Built for Every Creative Challenge
+      {/* ========== THE PAIN POINT ========== */}
+      <section className="py-24 border-b border-border bg-background/60">
+        <div className="container mx-auto px-6 relative z-10 max-w-5xl">
+          <div className="mb-16">
+            <h2 className="text-4xl font-extrabold text-foreground sm:text-5xl font-display tracking-tight">
+              You know the feeling<span className="text-primary">.</span>
             </h2>
-            <p className="text-lg text-muted-foreground font-light">
-              From high-stakes startup pitches to complex technical architectures, our multi-agent system adapts to your specific requirements.
+            <p className="mt-4 text-lg text-muted-foreground font-light max-w-2xl">
+              A raw idea hits you. It feels right. But you have no one to bounce it off. So you sit on it, or you build it wrong.
             </p>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-            {USE_CASES.map((useCase) => (
-              <Card
-                key={useCase.title}
-                variant="glass"
-                className="group cursor-pointer border-white/5 hover:border-primary/50 transition-all duration-500"
-                onClick={() => navigate('/create')}
+          <div className="grid gap-6 sm:grid-cols-3">
+            {painPoints.map((item, i) => (
+              <motion.div
+                key={item.title}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.08 }}
+                className="rounded-xl border border-border bg-background/80 p-8 hover:bg-card/90 transition-all duration-300"
               >
-                <CardContent className="p-8">
-                  <div className={`mb-8 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br ${useCase.color} group-hover:scale-110 transition-transform`}>
-                    <useCase.icon className={`h-7 w-7 ${useCase.iconColor}`} />
-                  </div>
-                  <h3 className="text-xl font-semibold text-white mb-4 tracking-tight">{useCase.title}</h3>
-                  <p className="text-muted-foreground leading-relaxed font-light text-sm mb-6">{useCase.description}</p>
-                  <div className="flex items-center text-primary text-sm font-semibold uppercase tracking-wider opacity-0 group-hover:opacity-100 transform translate-x-[-10px] group-hover:translate-x-0 transition-all">
-                    Initiate Session <ChevronRight className="h-4 w-4 ml-1" />
-                  </div>
-                </CardContent>
-              </Card>
+                <div className="mb-5 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-muted border border-border text-primary">
+                  <item.icon className="h-5 w-5" />
+                </div>
+                <h3 className="mb-3 text-xl font-bold text-foreground font-display">{item.title}</h3>
+                <p className="text-sm text-muted-foreground font-light leading-relaxed">{item.description}</p>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* Transparency Section */}
-      <section className="py-24 lg:py-40 bg-background relative overflow-hidden">
-        <div className="container px-4 mx-auto relative z-10">
-          <div className="grid lg:grid-cols-2 gap-24 items-center">
-            <div className="space-y-10">
-              <div className="text-primary font-mono text-xs uppercase tracking-[0.3em]">TRANSPARENCY</div>
-              <h2 className="text-5xl md:text-7xl font-bold text-white tracking-tighter leading-[1.1]">
-                No Black Boxes, <br />Only <span className="text-gradient">Logic</span>.
+      {/* ========== HOW IT WORKS ========== */}
+      <section className="py-28 border-b border-border relative bg-background/40">
+        <div className="container mx-auto px-6 relative z-10 max-w-5xl">
+          <div className="mb-16">
+            <h2 className="text-4xl font-extrabold text-foreground sm:text-5xl font-display tracking-tight">
+              It is simpler than it sounds<span className="text-primary">.</span>
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground font-light max-w-2xl">
+              No dashboards. No setup. Just your idea and a conversation that sharpens it.
+            </p>
+          </div>
+
+          <div className="space-y-16">
+            {howItWorks.map((step, i) => (
+              <motion.div
+                key={step.title}
+                initial={{ opacity: 0, x: -10 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="flex gap-6 items-start group"
+              >
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border bg-muted text-sm font-mono font-bold text-muted-foreground group-hover:text-primary group-hover:border-primary/30 transition-colors">
+                  {String(i + 1).padStart(2, '0')}
+                </div>
+                <div className="pt-1.5">
+                  <h3 className="text-xl font-bold text-foreground font-display mb-2">{step.title}</h3>
+                  <p className="text-muted-foreground font-light leading-relaxed max-w-xl">{step.description}</p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ========== WHY IT WORKS ========== */}
+      <section className="py-28 border-b border-border bg-background/70">
+        <div className="container mx-auto px-6 relative z-10 max-w-5xl">
+          <div className="mb-16">
+            <h2 className="text-4xl font-extrabold text-foreground sm:text-5xl font-display tracking-tight">
+              Polite AI is useless<span className="text-primary">.</span>
+            </h2>
+            <p className="mt-4 text-lg text-muted-foreground font-light max-w-2xl">
+              Every chatbot tells you your idea is great. That is not helpful. What helps is someone who actually reads your work and tells you where it breaks.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="rounded-xl border border-border bg-background/80 p-8">
+              <h3 className="text-xl font-bold text-foreground font-display mb-3">One drafts</h3>
+              <p className="text-sm text-muted-foreground font-light leading-relaxed">Takes your messy notes and builds a first version. It captures what you meant, even if you said it badly.</p>
+            </div>
+            <div className="rounded-xl border border-border bg-background/80 p-8">
+              <h3 className="text-xl font-bold text-foreground font-display mb-3">One critiques</h3>
+              <p className="text-sm text-muted-foreground font-light leading-relaxed">Reads it like an editor who has seen too many bad launches. It looks for weak logic, missing steps, and things that will break later.</p>
+            </div>
+            <div className="rounded-xl border border-border bg-background/80 p-8 md:col-span-2">
+              <h3 className="text-xl font-bold text-foreground font-display mb-3">One rewrites</h3>
+              <p className="text-sm text-muted-foreground font-light leading-relaxed max-w-2xl">Takes the critique and fixes the original. This loop runs until the output is tight enough that even the skeptic has nothing left to say.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ========== LOGS ========== */}
+      <section className="py-28 border-b border-border bg-background/90">
+        <div className="container mx-auto px-6 relative z-10 max-w-5xl">
+          <div className="grid items-center gap-16 lg:grid-cols-12">
+            <div className="lg:col-span-5 space-y-6">
+              <h2 className="text-4xl font-extrabold leading-tight text-foreground sm:text-5xl font-display tracking-tight">
+                You see everything.<br />
+                No black boxes<span className="text-primary">.</span>
               </h2>
-              <p className="text-xl text-muted-foreground leading-relaxed font-light max-w-lg">
-                We believe AI should be auditable. Every decision, modification, and critique is recorded in full, giving you a complete audit trail.
+              <p className="text-muted-foreground text-lg font-light leading-relaxed">
+                Every draft, every critique, every rewrite is logged in plain text. You can read the exact instructions each model received. No hidden prompts, no secret tweaks.
               </p>
-              <div className="grid sm:grid-cols-2 gap-8 pt-4">
+              
+              <div className="space-y-4 pt-4">
                 {[
-                  { icon: Eye, title: 'Full Traceability', desc: 'Every agent step is logged with nano-second precision.' },
-                  { icon: Shield, title: 'Auditable Paths', desc: 'Check reasoning logic for every iterative refinement.' }
+                  { icon: Eye, title: 'Full transcript', desc: 'Every message between agents, timestamped and readable.' },
+                  { icon: Shield, title: 'No secrets', desc: 'You see the system prompts. You see the edits. Nothing is hidden.' }
                 ].map((item, i) => (
-                  <div key={i} className="space-y-4">
-                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
-                      <item.icon className="w-6 h-6 text-primary" />
+                  <div key={i} className="flex gap-4 p-4 rounded-lg border border-border bg-card/70">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-md bg-muted border border-border text-primary">
+                      <item.icon className="h-5 w-5" />
                     </div>
-                    <h4 className="text-lg text-white font-semibold">{item.title}</h4>
-                    <p className="text-sm text-muted-foreground leading-relaxed">{item.desc}</p>
+                    <div>
+                      <h4 className="font-bold text-foreground text-base font-display">{item.title}</h4>
+                      <p className="text-sm text-muted-foreground/70 font-light">{item.desc}</p>
+                    </div>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="relative group">
-              <div className="absolute -inset-4 bg-primary/20 rounded-[2.5rem] blur-3xl opacity-20 group-hover:opacity-40 transition-opacity" />
-              <div className="relative bg-[#020617] rounded-3xl border border-white/10 p-2 shadow-2xl overflow-hidden">
-                <div className="flex items-center justify-between p-4 border-b border-white/5 bg-white/[0.02]">
-                  <div className="flex gap-2">
-                    <div className="w-3 h-3 rounded-full bg-red-500/40" />
-                    <div className="w-3 h-3 rounded-full bg-yellow-500/40" />
-                    <div className="w-3 h-3 rounded-full bg-green-500/40" />
+            <div className="lg:col-span-7 relative">
+              <div className="absolute -inset-2 rounded-2xl bg-primary/5 blur-2xl opacity-40 pointer-events-none" />
+              <div className="relative overflow-hidden rounded-xl border border-border bg-card/90 shadow-2xl">
+                <div className="flex items-center justify-between border-b border-border bg-muted/80 p-4">
+                  <div className="flex gap-1.5">
+                    <div className="h-2.5 w-2.5 rounded-full bg-muted/70" />
+                    <div className="h-2.5 w-2.5 rounded-full bg-muted/70" />
+                    <div className="h-2.5 w-2.5 rounded-full bg-muted/70" />
                   </div>
-                  <div className="text-[10px] text-white/40 font-mono uppercase tracking-[0.3em]">Execution_Stream.log</div>
+                  <div className="text-[10px] font-mono uppercase tracking-[0.2m] text-muted-foreground">session_log.txt</div>
                   <div className="w-8" />
                 </div>
-                <div className="p-10 space-y-6 font-mono text-xs leading-relaxed max-h-[400px] overflow-y-auto scrollbar-thin">
-                  <div className="flex gap-4">
-                    <span className="text-primary/60 shrink-0">12:04:22</span>
-                    <span className="text-primary font-bold shrink-0">[SYS]</span>
-                    <span className="text-white/80">Initializing Multi-Agent Pipeline... OK</span>
-                  </div>
-                  <div className="flex gap-4">
-                    <span className="text-white/20 shrink-0">12:04:23</span>
-                    <span className="text-accent font-bold shrink-0">[IDEA]</span>
-                    <span className="text-muted-foreground italic">"Generating conceptual framework for decentralized storage..."</span>
-                  </div>
-                  <div className="flex gap-4">
-                    <span className="text-white/20 shrink-0">12:04:25</span>
-                    <span className="text-red-400 font-bold shrink-0">[CRITIC]</span>
-                    <span className="text-white/90">Identifying potential latency bottleneck in Step 4. Recommending refinement.</span>
-                  </div>
-                  <div className="flex gap-4 border-l-2 border-primary/40 pl-6 py-4 bg-primary/5 rounded-r-lg">
-                    <span className="text-white/20 shrink-0">12:04:28</span>
-                    <span className="text-primary font-bold shrink-0">[REFINER]</span>
-                    <span className="text-white font-medium">Recalculating shard distribution... Latency bottleneck resolved. Score: 9.4/10</span>
-                  </div>
-                  <div className="flex gap-4">
-                    <span className="text-white/20 shrink-0">12:04:30</span>
-                    <span className="text-success font-bold shrink-0">[FINAL]</span>
-                    <span className="text-white/80">Compiling deliverable artifact... Ready.</span>
-                  </div>
+                <div className="max-h-[360px] space-y-4 overflow-y-auto p-6 font-mono text-xs leading-relaxed text-muted-foreground scrollbar-thin">
+                  {[
+                    { time: '06:04:12', tag: 'INPUT', tagColor: 'text-muted-foreground', msg: 'Received user prompt: "A food delivery app for elderly people..."', highlight: false },
+                    { time: '06:04:14', tag: 'DRAFT', tagColor: 'text-primary', msg: 'Structured initial proposal with 3 core features', highlight: false },
+                    { time: '06:04:19', tag: 'CRITIC', tagColor: 'text-red-400', msg: 'Found 2 issues: accessibility assumption in checkout flow is not validated.', highlight: false },
+                    { time: '06:04:24', tag: 'REVISE', tagColor: 'text-cyan-400', msg: 'Rewrote checkout section with simplified text and larger tap targets.', highlight: true },
+                    { time: '06:04:29', tag: 'DONE', tagColor: 'text-green-400', msg: 'Final brief ready. 12 sections, 3 revisions applied.', highlight: false },
+                  ].map((entry, i) => (
+                    <div key={i} className={`flex gap-4 ${entry.highlight ? 'rounded border border-primary/20 bg-primary/5 py-3 px-4' : ''}`}>
+                      <span className="shrink-0 text-muted-foreground/70">{entry.time}</span>
+                      <span className={`shrink-0 font-bold ${entry.tagColor}`}>[{entry.tag}]</span>
+                      <span className={entry.highlight ? 'text-foreground font-medium' : 'text-foreground/80'}>{entry.msg}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
@@ -473,218 +299,149 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Testimonials Section */}
-      <section className="py-24 lg:py-32 bg-background relative">
-        <div className="container px-4 mx-auto">
-          <div className="mb-20 text-center">
-            <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-4">ENDORSEMENTS</div>
-            <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">Trusted by Innovators</h2>
-            <p className="text-lg text-muted-foreground font-light max-w-2xl mx-auto">See how The Orchestra Studio is redefining the standard for AI-assisted creation.</p>
+      {/* ========== TESTIMONIALS ========== */}
+      <section className="py-28 border-b border-border bg-background/70">
+        <div className="container mx-auto px-6 relative z-10 max-w-5xl">
+          <div className="mb-16">
+            <h2 className="text-4xl font-extrabold text-foreground sm:text-5xl font-display tracking-tight">
+              From people who use it<span className="text-primary">.</span>
+            </h2>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-3">
-            {TESTIMONIALS.map((testimonial) => (
-              <Card key={testimonial.author} variant="glass" className="border-white/5 hover:border-primary/20 transition-all p-2">
-                <CardContent className="p-8">
-                  <div className="flex gap-1 mb-6">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-primary text-primary" />
-                    ))}
-                  </div>
-                  <p className="text-white/80 mb-8 text-lg font-light leading-relaxed">"{testimonial.quote}"</p>
-                  <div className="flex items-center gap-4">
-                    <div className="h-12 w-12 rounded-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center text-primary font-bold border border-primary/20">
-                      {testimonial.avatar}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-white">{testimonial.author}</p>
-                      <p className="text-xs text-muted-foreground uppercase tracking-widest pt-1">{testimonial.role}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Pricing Section */}
-      <section className="py-24 lg:py-32 bg-secondary/5">
-        <div className="container px-4 mx-auto">
-          <div className="mb-20 text-center">
-            <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-4">INVESTMENT</div>
-            <h2 className="text-4xl md:text-6xl font-bold text-white mb-6">Professional Plans</h2>
-            <p className="text-lg text-muted-foreground font-light">Simple, scalable pricing for individuals and teams.</p>
-          </div>
-
-          <div className="grid gap-8 md:grid-cols-3 max-w-6xl mx-auto">
-            {PRICING_TIERS.map((tier) => (
-              <Card
-                key={tier.name}
-                className={`relative overflow-hidden transition-all duration-500 hover:scale-[1.02] ${tier.highlighted ? 'border-primary bg-primary/5 ring-1 ring-primary/20' : 'border-white/5 bg-white/[0.02]'}`}
+          <div className="grid gap-6 md:grid-cols-3">
+            {testimonials.map((t, i) => (
+              <motion.div
+                key={t.author}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: i * 0.1 }}
+                className="rounded-xl border border-border bg-card/50 p-8 backdrop-blur-sm hover:border-muted transition-colors"
               >
-                {tier.highlighted && (
-                  <div className="absolute top-0 right-0 p-4">
-                    <span className="bg-primary text-primary-foreground text-[10px] font-bold uppercase tracking-widest px-3 py-1 rounded-full">Recommended</span>
+                <Quote className="mb-4 h-5 w-5 text-muted-foreground/50" />
+                <p className="mb-8 text-base font-light leading-relaxed text-foreground/80">"{t.quote}"</p>
+                <div className="flex items-center gap-4">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-muted border border-border text-sm font-mono font-bold text-primary">
+                    {t.avatar}
                   </div>
-                )}
-                <CardContent className="p-10">
-                  <h3 className="text-2xl font-bold text-white mb-2">{tier.name}</h3>
-                  <div className="flex items-baseline gap-1 mt-4 mb-8">
-                    <span className="text-5xl font-bold text-white tracking-tighter">{tier.price}</span>
-                    {tier.period && <span className="text-muted-foreground font-light">{tier.period}</span>}
+                  <div>
+                    <p className="font-bold text-foreground text-sm font-display">{t.author}</p>
+                    <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground">{t.role}</p>
                   </div>
-                  <p className="text-muted-foreground text-sm font-light mb-10 leading-relaxed h-12">{tier.description}</p>
-
-                  <div className="space-y-4 mb-10">
-                    {tier.features.map((feature) => (
-                      <div key={feature} className="flex items-start gap-3">
-                        <CheckCircle className="h-5 w-5 text-primary shrink-0 mt-0.5" />
-                        <span className="text-sm text-white/80 font-light">{feature}</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <Button
-                    className="w-full h-12 text-sm font-semibold tracking-wide"
-                    variant={tier.highlighted ? 'primary' : 'outline'}
-                    onClick={() => navigate('/create')}
-                  >
-                    {tier.cta}
-                  </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </motion.div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* FAQ Section */}
-      <section className="py-24 lg:py-32 bg-background">
-        <div className="container px-4 mx-auto">
-          <div className="max-w-3xl mx-auto">
-            <div className="mb-16 text-center">
-              <div className="text-primary font-mono text-xs uppercase tracking-[0.3em] mb-4">PERSISTENCE</div>
-              <h2 className="text-4xl md:text-5xl font-bold text-white mb-6">Common Inquiries</h2>
+      {/* ========== FAQ ========== */}
+      <section className="py-32 border-b border-border bg-background/70">
+        <div className="container mx-auto px-6 relative z-10">
+          <div className="mx-auto max-w-3xl">
+            <div className="mb-12">
+              <h2 className="text-3xl font-extrabold text-foreground font-display tracking-tight">Common Inquiries</h2>
             </div>
 
-            <div className="bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden px-8">
-              {FAQ_ITEMS.map((item, index) => (
-                <FAQItem
-                  key={index}
-                  question={item.question}
-                  answer={item.answer}
-                  isOpen={openFAQ === index}
-                  onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
-                />
+            <div className="border border-border rounded-xl overflow-hidden bg-card/50">
+              {faqItems.map((item, index) => (
+                <div key={index} className="border-b border-border last:border-0">
+                  <button
+                    onClick={() => setOpenFAQ(openFAQ === index ? null : index)}
+                    className="flex w-full items-center justify-between px-6 py-5 text-left transition-colors hover:text-primary group"
+                  >
+                    <span className="text-sm font-semibold text-foreground/90 group-hover:text-primary transition-colors font-display">{item.question}</span>
+                    <ChevronDown className={`h-4.5 w-4.5 text-muted-foreground transition-transform duration-300 ${openFAQ === index ? 'rotate-180 text-primary' : ''}`} />
+                  </button>
+                  {openFAQ === index && (
+                    <div className="px-6 pb-5 text-xs leading-relaxed text-muted-foreground font-light border-t border-border/50 pt-4">
+                      {item.answer}
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-32 lg:py-48 relative overflow-hidden">
-        <div className="absolute inset-0 bg-primary/5 [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]" />
-        <div className="container px-4 mx-auto relative z-10 text-center">
-          <div className="max-w-4xl mx-auto space-y-12">
-            <div className="w-20 h-20 rounded-3xl bg-primary/10 flex items-center justify-center mx-auto mb-10 border border-primary/20 transform rotate-12">
-              <Layers className="h-10 w-10 text-primary" />
+      {/* ========== CTA ========== */}
+      <section className="relative py-40 bg-background/40">
+        <AuroraBackground className="absolute inset-0 z-0 opacity-40 pointer-events-none" />
+        <div className="container relative z-10 mx-auto px-6 max-w-5xl">
+          <div className="max-w-3xl space-y-8">
+            <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted border border-border">
+              <Coffee className="h-6 w-6 text-primary" />
             </div>
-            <h2 className="text-5xl md:text-8xl font-bold text-white tracking-tight leading-[0.9]">
-              Start Orchestrating <br />Your Vision <span className="text-primary">Today</span>.
+            <h2 className="text-5xl font-extrabold leading-none text-foreground sm:text-7xl lg:text-8xl font-display tracking-tight">
+              Stop guessing.<br />
+              Start building with feedback<span className="text-primary">.</span>
             </h2>
-            <p className="text-xl text-muted-foreground max-w-2xl mx-auto font-light leading-relaxed">
-              Join the elite teams of builders who use The Orchestra Studio to stress-test their best ideas.
+            <p className="max-w-xl text-muted-foreground font-light text-lg">
+              The first session is free. No credit card. Just your idea and a system that actually pushes back.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-8 pt-6">
+            <div className="flex flex-col gap-4 pt-6 sm:flex-row">
               <Button
                 size="lg"
-                onClick={() => navigate('/signup')}
-                className="h-16 px-10 text-lg bg-primary text-primary-foreground hover:scale-105 transition-transform group"
+                onClick={() => navigate('/create')}
+                className="group h-14 rounded-xl bg-primary px-8 text-base font-bold text-primary-foreground hover:bg-primary/95 transition-all"
               >
-                Create Free Account
-                <ArrowRight className="ml-3 h-5 w-5 transition-transform group-hover:translate-x-2" />
+                Try it now
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
               <Button
                 size="lg"
                 variant="ghost"
-                onClick={() => navigate('/history')}
-                className="h-16 px-10 text-lg text-white hover:bg-white/5"
+                onClick={() => navigate('/about')}
+                className="h-14 px-8 text-base font-medium text-muted-foreground hover:text-foreground hover:bg-muted/30"
               >
-                Browse Documentation
+                Learn more
               </Button>
             </div>
           </div>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="border-t border-white/5 py-24 bg-background">
-        <div className="container px-4 mx-auto">
-          <div className="grid gap-12 md:grid-cols-4 lg:grid-cols-5">
+      {/* ========== FOOTER ========== */}
+      <footer className="border-t border-border py-16 bg-background relative z-10">
+        <div className="container mx-auto px-6">
+          <div className="grid gap-12 md:grid-cols-2 lg:grid-cols-5">
             <div className="lg:col-span-2">
-              <div className="flex items-center gap-3 mb-8">
-                <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
-                  <Shield className="h-6 w-6 text-primary-foreground" />
+              <div className="mb-6 flex items-center gap-3">
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
+                  <span className="text-xs font-bold text-primary-foreground font-mono">O</span>
                 </div>
-                <span className="text-2xl font-bold text-white tracking-tight">The Orchestra Studio</span>
+                <span className="text-lg font-bold tracking-tight text-foreground font-display">The Orchestra Studio</span>
               </div>
-              <p className="text-muted-foreground text-lg font-light leading-relaxed max-w-sm mb-10">
-                The world's most advanced multi-agent orchestration platform for serious creators and engineers.
+              <p className="mb-6 max-w-sm text-sm font-light text-muted-foreground leading-relaxed">
+                A thinking tool for people building alone. Put in a raw idea. Get back something that holds up.
               </p>
-              <div className="flex items-center gap-6">
-                {[
-                  { icon: Network, href: '#', label: 'Network' },
-                  { icon: GitBranch, href: '#', label: 'GitHub' },
-                  { icon: MessageSquare, href: '#', label: 'Chat' }
-                ].map((social, i) => (
-                  <a key={i} href={social.href} aria-label={social.label} className="w-10 h-10 rounded-full border border-white/5 flex items-center justify-center text-muted-foreground hover:text-white hover:border-white/20 transition-all">
-                    <social.icon className="h-5 w-5" />
-                  </a>
-                ))}              </div>
             </div>
 
-            <div>
-              <h4 className="font-bold text-white mb-8 tracking-wider uppercase text-xs">Architecture</h4>
-              <ul className="space-y-4 text-sm font-light">
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Orchestrator</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Agent SDK</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Execution Logs</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Context Memory</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold text-white mb-8 tracking-wider uppercase text-xs">Resources</h4>
-              <ul className="space-y-4 text-sm font-light">
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">API Keys</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Documentation</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Security Audit</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Status Page</a></li>
-              </ul>
-            </div>
-
-            <div>
-              <h4 className="font-bold text-white mb-8 tracking-wider uppercase text-xs">Legal</h4>
-              <ul className="space-y-4 text-sm font-light">
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">Cookie Policy</a></li>
-                <li><a href="#" className="text-muted-foreground hover:text-primary transition-colors">GDPR</a></li>
-              </ul>
-            </div>
+            {[
+              { title: 'Product', links: ['Features', 'Pricing', 'API', 'Docs'] },
+              { title: 'Company', links: ['About', 'Blog', 'Careers', 'Contact'] },
+              { title: 'Legal', links: ['Privacy', 'Terms', 'Security', 'Changelog'] },
+            ].map((section) => (
+              <div key={section.title}>
+                <h4 className="mb-5 text-xs font-mono uppercase tracking-widest text-muted-foreground">{section.title}</h4>
+                <ul className="space-y-3">
+                  {section.links.map((link) => (
+                    <li key={link}>
+                      <a href="#" className="text-xs text-muted-foreground hover:text-primary transition-colors font-mono uppercase tracking-wider">{link}</a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
           </div>
 
-          <div className="mt-24 pt-10 border-t border-white/5 flex flex-col md:flex-row items-center justify-between gap-6">
-            <p className="text-xs text-muted-foreground font-mono tracking-widest uppercase">
-              © 2024 The Orchestra Studio Inc. // Protocol v2.0.4-LOCKED
+          <div className="mt-16 flex flex-col items-center justify-between gap-6 border-t border-border pt-8 md:flex-row">
+            <p className="text-[10px] font-mono uppercase tracking-widest text-muted-foreground/70">
+              © 2026 The Orchestra Studio • Protocol v2.0.4
             </p>
-            <div className="flex items-center gap-2 text-[10px] font-mono text-primary/60 uppercase tracking-[0.2em]">
-              <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
-              </span>
+            <div className="flex items-center gap-2 text-[9px] font-mono uppercase tracking-[0.2em] text-primary">
+              <span className="live-dot" />
               All Systems Operational
             </div>
           </div>

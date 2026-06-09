@@ -1,0 +1,1 @@
+Fixed auth middleware to require proper authentication in production and updated memory service interface for agentType consistency.

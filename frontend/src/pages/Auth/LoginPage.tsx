@@ -25,12 +25,12 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen flex flex-col md:flex-row bg-background overflow-hidden">
             {/* Left Side: Visual Experience */}
-            <div className="hidden md:flex md:w-1/2 relative mesh-gradient items-center justify-center p-12 overflow-hidden">
-                <div className="absolute inset-0 bg-grid-white/[0.02] [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
+            <div className="hidden md:flex md:w-1/2 relative aurora-bg items-center justify-center p-12 overflow-hidden">
+                <div className="absolute inset-0 bg-grid opacity-30 [mask-image:radial-gradient(ellipse_at_center,transparent_20%,black)]" />
 
                 {/* Floating Elements */}
-                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-[100px] animate-pulse-slow" />
-                <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-accent/20 rounded-full blur-[100px] animate-pulse-slow animation-delay-2000" />
+                <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-primary/20 rounded-full blur-[100px] animate-pulse-glow" />
+                <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-accent/20 rounded-full blur-[100px] animate-pulse-glow" />
 
                 <div className="relative z-10 max-w-lg space-y-8 animate-float">
                     <div className="space-y-4">
@@ -79,9 +79,9 @@ export default function LoginPage() {
             {/* Right Side: Login Form */}
             <div className="flex-1 flex items-center justify-center p-6 sm:p-12 relative">
                 {/* Mobile Background Elements */}
-                <div className="md:hidden absolute inset-0 mesh-gradient -z-10" />
+                <div className="md:hidden absolute inset-0 aurora-bg -z-10" />
 
-                <div className="w-full max-w-[400px] space-y-10 animate-in slide-in-from-bottom-4 duration-1000">
+                <div className="w-full max-w-[400px] space-y-10">
                     <div className="text-center md:text-left space-y-3">
                         <div className="md:hidden flex justify-center mb-6">
                             <div className="w-12 h-12 bg-primary/20 rounded-xl flex items-center justify-center border border-primary/30 backdrop-blur-xl">
