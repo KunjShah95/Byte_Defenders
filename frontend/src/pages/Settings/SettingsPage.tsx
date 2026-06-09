@@ -111,7 +111,7 @@ export default function SettingsPage() {
                                 <p className="font-medium text-foreground">{item.label}</p>
                                 <p className="text-sm text-muted-foreground">{item.desc}</p>
                             </div>
-                            <ToggleSwitch checked={settings.preferences[item.key as keyof UserSettings['preferences']]} onChange={() => updateSetting('preferences', item.key as keyof UserSettings['preferences'], !settings.preferences[item.key as keyof UserSettings['preferences']])} />
+                            <ToggleSwitch checked={settings.preferences[item.key as 'autoSave' | 'explainabilityMode']} onChange={() => updateSetting('preferences', item.key as 'autoSave' | 'explainabilityMode', !settings.preferences[item.key as 'autoSave' | 'explainabilityMode'])} />
                         </div>
                     ))}
                 </div>
